@@ -1,17 +1,19 @@
 [TOC]
 
-# Introduction
+# Einführung
 
-The structure of this tutorial assumes an intermediate level
-knowledge of Python but not much else. No knowledge of
-concurrency is expected. The goal is to give you
-the tools you need to get going with gevent, help you tame
-your existing concurrency problems and start writing asynchronous
-applications today.
+Die Struktur dieses Tutorials nimmt an, dass der Leser ein
+gewisses Level an Wissen über Python-Programmierung hat,
+sonst jedoch nicht viel. Kein Wissen über Nebenläufigkeit
+wird erwartet. Das Ziel ist es, dem Leser die Werkzeuge in
+die Hand zu geben, um mit gevent zu arbeiten, ihm zu helfen,
+seine vorhandenen Probleme mit Nebenläufigkeit zu bezwingen
+und es ihm ermöglichen, noch heute asynchrone Applikationen 
+zu schreiben.
 
-### Contributors
+### Mitwirkende
 
-In chronological order of contribution:
+In chronologischer Reihenfolge der Mitarbeit:
 [Stephen Diehl](http://www.stephendiehl.com)
 [J&eacute;r&eacute;my Bethmont](https://github.com/jerem)
 [sww](https://github.com/sww)
@@ -24,59 +26,61 @@ In chronological order of contribution:
 [Alexis Metaireau](http://notmyidea.org)
 [Daniel Velkov](https://github.com/djv)
 
-Also thanks to Denis Bilenko for writing gevent and guidance in
-constructing this tutorial.
+Ausserdem ein Dankeschön an Denis Bilenko dafür, dass er gevent
+geschrieben und uns bei der Erstellung dieses Tutorials beraten hat.
 
-This is a collaborative document published under MIT license.
-Have something to add? See a typo? Fork and issue a
-pull request [Github](https://github.com/sdiehl/gevent-tutorial).
-Any and all contributions are welcome.
+Dies ist ein kollaboratives Dokument, veröffentlicht unter der MIT-Lizenz.
+Du hast etwas hinzuzufügen? Siehst einen Tippfehler? Forke es und erstelle
+einen Pull Request auf [Github](https://github.com/sdiehl/gevent-tutorial).
+Jede Mitarbeit ist willkommen.
 
-This page is also available in
-[Japanese](http://methane.github.com/gevent-tutorial-ja),
-[Chinese](http://xlambda.com/gevent-tutorial/),
-[Spanish](http://ovnicraft.github.io/gevent/) and
-[Italian](http://pbertera.github.io/gevent-tutorial-it/).
+(Anmerkung des Übersetzers: Falls Tippfehler in der Übersetzung auftauchen
+solleten, kannst du sie [hier](https://github.com/hellerve/gevent-tutorial)
+melden.)
+
+Diese Seite ist auch [in Japanisch](http://methane.github.com/gevent-tutorial-ja) 
+und [Italienisch](http://pbertera.github.io/gevent-tutorial-it/) verfügbar.
 
 # Core
 
 ## Greenlets
 
-The primary pattern used in gevent is the <strong>Greenlet</strong>, a
-lightweight coroutine provided to Python as a C extension module.
-Greenlets all run inside of the OS process for the main
-program but are scheduled cooperatively.
+Die primäre Struktur, die in gevent verwendet wird, ist das <strong>Greenlet</strong>, 
+eine leichtgewichtige Koroutine die Python als C-Erweiterungs-Modul zur
+Verfügung gestellt wird. Greenlets laufen allesamt innerhalb des OS-Prozesses
+des Hauptprogrammes, werden aber kooperativ verwaltet.
 
-> Only one greenlet is ever running at any given time.
+> Only one greenlet is ever running at any given time. (Nur ein Greenlet läuft zu jeder gegebenen Zeit.)
 
-This differs from any of the real parallelism constructs provided by
-``multiprocessing`` or ``threading`` libraries which do spin processes
-and POSIX threads which are scheduled by the operating system and
-are truly parallel.
+Dies unterscheidet sich von allen echten Parallelitäts-Konstrukten,
+die von den ``multiprocessing``- oder ```threading``-Bibliotheken
+implementiert werden; diese verwenden Spin-Prozesse und POSIX-Threads,
+welche vom Betriebssystem verwaltet werden und echt parallel ablaufen.
 
-## Synchronous & Asynchronous Execution
+## Synchrone & Asynchrone Ausführung
 
-The core idea of concurrency is that a larger task can be broken down
-into a collection of subtasks which are scheduled to run simultaneously
-or *asynchronously*, instead of one at a time or *synchronously*. A
-switch between the two subtasks is known as a *context switch*.
+Die Kernidee von Nebenläufigkeit ist, dass eine grössere Aufgabe in
+eine Ansammlung von Sub-Aufgaben unterteilt werden kann, welche
+simultan ausgeführt werden sollen oder *asynchron* anstatt nacheinander
+oder *synchron*. Ein Übergang zwischen zwei Sub-Aufgaben nennt man
+*Kontext-Wechsel*(Context Switch).
 
-A context switch in gevent is done through *yielding*. In this 
-example we have two contexts which yield to each other through invoking
-``gevent.sleep(0)``.
+Ein Kontext-Wechsel in gevent wird durch *Yielding* umgesetzt. In diesem
+Beispiel haben wir zwei Kontexte, die sich gegenseitig "yielden", indem
+sie ``gevent.sleep(0)```aufrufen.
 
 [[[cog
 import gevent
 
 def foo():
-    print('Running in foo')
+    print('Expliziter Kontext bei foo')
     gevent.sleep(0)
-    print('Explicit context switch to foo again')
+    print('Expliziter Kontextwechsel zu foo')
 
 def bar():
-    print('Explicit context to bar')
+    print('Expliziter Kontext bei bar')
     gevent.sleep(0)
-    print('Implicit context switch back to bar')
+    print('Expliziter Kontextwechsel zu bar')
 
 gevent.joinall([
     gevent.spawn(foo),
@@ -85,20 +89,26 @@ gevent.joinall([
 ]]]
 [[[end]]]
 
-It is illuminating to visualize the control flow of the program or walk
-through it with a debugger to see the context switches as they occur.
+Es ist erhellend, den Kontrollfluss des Programms zu visualisieren
+oder mit einem Debugger hindurchzugeben, um die Kontext-Wechsel in Echtzeit
+zu betrachten.
+
+(Anmerkung des Übersetzers: An dieser Stelle will ich mich entschuldigen,
+die Gif nicht übersetzt zu haben, aber ich glaube, dass es dem Verständnis nicht
+abträglich ist.)
 
 ![Greenlet Control Flow](flow.gif)
 
-The real power of gevent comes when we use it for network and IO
-bound functions which can be cooperatively scheduled. Gevent has
-taken care of all the details to ensure that your network
-libraries will implicitly yield their greenlet contexts whenever
-possible. I cannot stress enough what a powerful idiom this is.
-But maybe an example will illustrate.
+Die wirkliche Stärke von gevent ist zu sehen, wenn wir es für
+Netzwerk- und IO-lastige Funktionen benutzen, welche kooperativ
+verwaltet werden können. Gevent kümmert sich um all die Details,
+die nötig sind, damit deine Netzwerkbibliotheken immer implizit ihre
+Greenlet-Kontexte liefern, wenn dies möglich ist. Ich kann nicht
+genug betonen, was für ein mächtiges Idiom das ist. Aber vielleicht
+illustriert ein Beispiel das.
 
-In this case the ``select()`` function is normally a blocking
-call that polls on various file descriptors.
+In diesem Fall ist die ``select()``-Funktion normalerweise ein
+blockierender Aufruf, der verscheidene Dateideskriptoren abfragt.
 
 [[[cog
 import time
@@ -106,22 +116,22 @@ import gevent
 from gevent import select
 
 start = time.time()
-tic = lambda: 'at %1.1f seconds' % (time.time() - start)
+tic = lambda: 'bei %1.1f Sekunden' % (time.time() - start)
 
 def gr1():
-    # Busy waits for a second, but we don't want to stick around...
-    print('Started Polling: %s' % tic())
+    # Wartet eine Sekunde lang, aber wir wollen nicht herumlungern
+    print('Beginn der Wartezeit: %s' % tic())
     select.select([], [], [], 2)
-    print('Ended Polling: %s' % tic())
+    print('Ende der Wartezeit: %s' % tic())
 
 def gr2():
-    # Busy waits for a second, but we don't want to stick around...
-    print('Started Polling: %s' % tic())
+    # Wartet eine Sekunde lang, aber wir wollen nicht herumlungern
+    print('Beginn der Wartezeit: %s' % tic())
     select.select([], [], [], 2)
-    print('Ended Polling: %s' % tic())
+    print('Ende der Wartezeit: %s' % tic())
 
 def gr3():
-    print("Hey lets do some stuff while the greenlets poll, %s" % tic())
+    print("Hey, lass uns irgendwas tun, solange die Greenlets warten, %s" % tic())
     gevent.sleep(1)
 
 gevent.joinall([
@@ -132,12 +142,12 @@ gevent.joinall([
 ]]]
 [[[end]]]
 
-Another somewhat synthetic example defines a ``task`` function
-which is *non-deterministic*
-(i.e. its output is not guaranteed to give the same result for
-the same inputs). In this case the side effect of running the
-function is that the task pauses its execution for a random
-number of seconds.
+Ein weiteres etwas synthetisches Beispiel definiert eine 
+``task``-Funktion, die *nichtdeterministisch* ist(d.h. es wird nicht
+garantiert, dass ihre Rückgabe immer das selbe Ergebnis bei gleicher
+Eingabe ist). In diesem Fall ist der Nebeneffekt dieser Funktion,
+dass die Ausführung der Aufgabe für eine zufällige Anzahl an Sekunden
+pausiert wird.
 
 [[[cog
 import gevent
@@ -145,10 +155,10 @@ import random
 
 def task(pid):
     """
-    Some non-deterministic task
+    Eine nichtdeterministische Aufgabe
     """
     gevent.sleep(random.randint(0,2)*0.001)
-    print('Task %s done' % pid)
+    print('Aufgabe %s beendet' % pid)
 
 def synchronous():
     for i in range(1,10):
@@ -158,41 +168,42 @@ def asynchronous():
     threads = [gevent.spawn(task, i) for i in xrange(10)]
     gevent.joinall(threads)
 
-print('Synchronous:')
+print('Synchron:')
 synchronous()
 
-print('Asynchronous:')
+print('Asynchron:')
 asynchronous()
 ]]]
 [[[end]]]
 
-In the synchronous case all the tasks are run sequentially,
-which results in the main programming *blocking* (
-i.e. pausing the execution of the main program )
-while each task executes.
+In der synchronen Funktion laufen alle Aufrufe von ``task()``
+sequentiell ab, was ein *blockierendes* (d.h. die Ausführung
+des Hauptprogrammes pausierendes) Programm erzeugt. Es "wartet"
+auf die Ausführung jedes Aufrufes.
 
-The important parts of the program are the
-``gevent.spawn`` which wraps up the given function
-inside of a Greenlet thread. The list of initialized greenlets
-are stored in the array ``threads`` which is passed to
-the ``gevent.joinall`` function which blocks the current
-program to run all the given greenlets. The execution will step
-forward only when all the greenlets terminate.
+Die wichitgen Teile des Programms sind die Aufrufe von ``gevent.spawn``,
+welche die angegebene Funktion in einem Greenlet-Thread verpackt.
+Die Liste initialisierter Greenlets werden im Array ``threads`` gespeichert,
+welcher an die Funktion ```gevent.joinall```weitergereicht wird, welche
+das laufende Programm blockiert, um alle Greenlets auszuführen.
+Die Ausführung wird nur weitergeführt, wenn alle Greenlets terminieren.
 
-The important fact to notice is that the order of execution in
-the async case is essentially random and that the total execution
-time in the async case is much less than the sync case. In fact
-the maximum time for the synchronous case to complete is when
-each tasks pauses for 0.002 seconds resulting in a 0.02 seconds for the
-whole queue. In the async case the maximum runtime is roughly 0.002
-seconds since none of the tasks block the execution of the
-others.
+Der wichtige Umstand hier ist, dass die Reihenfolge, in der der Code
+ausgeführt wird, im asynchronen Fall mehr oder weniger zufällig ist und
+dass die ganze Ausführungszeit im asynchronen Fall sehr viel geringer ist
+als im synchronen Fall. Tatsächlich ist die maximale Zeit, die der
+synchrone Code braucht, um einen ```task`` auszuführen 0.002 Sekunden,
+was bedeutet, dass die Gesamtzeit sich auf etwa 0.02 Sekunden beläuft.
+Im asynchronen Fall beläuft sich die maximale Gesamtzeit auf ungefähr
+0.002 Sekunden, da kein ```task```die Ausführung der anderen blockiert.
 
-In a more common use case, asynchronously fetching data from a server,
-the runtime of ``fetch()`` will differ between
-requests, depending on the load on the remote server at the time of the request.
+Bei einem etwas üblicheren Fall, dem asynchronen Abrufen von Daten von
+einem Server, wird sich die Laufzeit von ``fetch()`` in verschiedenen
+Abfragen unterscheiden, in Abhängigkeit von der Last des Servers zur Zeit
+der Abfrage.
 
-<pre><code class="python">import gevent.monkey
+[[[cog
+import gevent.monkey
 gevent.monkey.patch_socket()
 
 import gevent
@@ -205,7 +216,7 @@ def fetch(pid):
     json_result = json.loads(result)
     datetime = json_result['datetime']
 
-    print('Process %s: %s' % (pid, datetime))
+    print('Prozess %s: %s' % (pid, datetime))
     return json_result['datetime']
 
 def synchronous():
@@ -218,20 +229,21 @@ def asynchronous():
         threads.append(gevent.spawn(fetch, i))
     gevent.joinall(threads)
 
-print('Synchronous:')
+print('Synchron:')
 synchronous()
 
-print('Asynchronous:')
+print('Asynchron:')
 asynchronous()
-</code>
-</pre>
+]]]
+[[[end]]]
 
-## Determinism
+## Determinismus
 
-As mentioned previously, greenlets are deterministic. Given the same
-configuration of greenlets and the same set of inputs, they always
-produce the same output. For example, let's spread a task across a
-multiprocessing pool and compare its results to the one of a gevent pool.
+Wie bereits erwähnt sind Greenlets deterministisch. Gibt man ihnen
+den selben Input und konfiguriert man sie gleich, produzieren sie
+immer die selbe Ausgabe. Im Folgenenden werden wir zum Beispiel eine
+Aufgabe auf einen Multiprozessor-Pool aufteilen und die Resultate mit
+denen eines gevent-Pools vergleichen.
 
 <pre>
 <code class="python">
@@ -241,7 +253,7 @@ def echo(i):
     time.sleep(0.001)
     return i
 
-# Non Deterministic Process Pool
+# Nichtdeterministischer Prozess Pool
 
 from multiprocessing.pool import Pool
 
@@ -253,7 +265,7 @@ run4 = [a for a in p.imap_unordered(echo, xrange(10))]
 
 print(run1 == run2 == run3 == run4)
 
-# Deterministic Gevent Pool
+# Deterministischer Gevent Pool
 
 from gevent.pool import Pool
 
@@ -272,29 +284,32 @@ print(run1 == run2 == run3 == run4)
 True</code>
 </pre>
 
-Even though gevent is normally deterministic, sources of
-non-determinism can creep into your program when you begin to
-interact with outside services such as sockets and files. Thus
-even though green threads are a form of "deterministic
-concurrency", they still can experience some of the same problems
-that POSIX threads and processes experience.
+Obwohl gevent normalerweise deterministisch ist, können Quellen
+von Nichtdeterminismus sich in ein Programm einschleichen,
+wenn man beginnt, mit der Aussenwelt, zum Beispiel Sockets
+und Dateien, zu kommunizieren. Daher können Green Threads,
+obwohl sie eine Form der "deterministischen Nebenläufigkeit"
+sind, trotzdem einige der gleichen Probleme haben, die
+POSIX Threads und Prozesse durchmachen.
 
-The perennial problem involved with concurrency is known as a
-*race condition*. Simply put, a race condition occurs when two concurrent threads
-/ processes depend on some shared resource but also attempt to
-modify this value. This results in resources which values become
-time-dependent on the execution order. This is a problem, and in
-general one should very much try to avoid race conditions since
-they result in a globally non-deterministic program behavior.
+Das immerwährende Problem mit Nebenläufigkeit ist bekannt als
+die *Wettlaufsituation*(Race Condition). Einfach gesagt passiert
+eine Wettlaufsituation, wenn zwei nebenläufige Threads/Prozesse
+von einer geteilten Resource abhängen, sie jedoch auch zu modifizieren
+versuchen. Dies resultiert in Resourcen, deren Werte abhängig
+von Zeit und Ablauf der Ausführung werden. Dies ist ein Problem
+und im Allgemeinen sollte man sehr stark versuchen, Wettlaufsituationen
+zu vermeiden, da sie global nicht-deterministisches Programmverhalten
+zur Folge haben.
 
-The best approach to this is to simply avoid all global state at all
-times. Global state and import-time side effects will always come
-back to bite you!
+Der beste Ansatz hierfür ist es, jeglichen globalen Zustand zu jedem
+Zeitpunkt zu vermeiden. Globaler Zustand und Seiten-Effekte zur Import-Zeit
+werden dich immer wieder belästigen!
 
-## Spawning Greenlets
+## Greenlets kreieren
 
-gevent provides a few wrappers around Greenlet initialization.
-Some of the most common patterns are:
+gevent bietet einige Wrapper um die Initialisierung von Greenlets
+an. Einige der meist verwendeten Muster sind:
 
 [[[cog
 import gevent
@@ -302,32 +317,32 @@ from gevent import Greenlet
 
 def foo(message, n):
     """
-    Each thread will be passed the message, and n arguments
-    in its initialization.
+    Jeder Thread bekommt die Argumente message und n
+    bei seiner Initialisierung
     """
     gevent.sleep(n)
     print(message)
 
-# Initialize a new Greenlet instance running the named function
-# foo
-thread1 = Greenlet.spawn(foo, "Hello", 1)
+# Initialisiert eine neue Greenlet-Instanz, die die Funktion
+# foo ausführt
+thread1 = Greenlet.spawn(foo, "Hallo", 1)
 
-# Wrapper for creating and running a new Greenlet from the named
-# function foo, with the passed arguments
-thread2 = gevent.spawn(foo, "I live!", 2)
+# Wrapper, um ein neues Greenlet mit der Funktion foo
+# zu erstellen und auszuführen, mit den übergebenen Argumenten
+thread2 = gevent.spawn(foo, "Ich lebe!", 2)
 
-# Lambda expressions
+# Lambda-Ausdruck
 thread3 = gevent.spawn(lambda x: (x+1), 2)
 
 threads = [thread1, thread2, thread3]
 
-# Block until all threads complete.
+# Blockiert, bis alle Threads fertig sind.
 gevent.joinall(threads)
 ]]]
 [[[end]]]
 
-In addition to using the base Greenlet class, you may also subclass
-Greenlet class and override the ``_run`` method.
+Zusätzlich zur Verwendung der Greenlet-Klasse kann man auch eine
+Subklasse dieser erstellen und die ``_run`` Methode überschreiben.
 
 [[[cog
 import gevent
@@ -344,37 +359,39 @@ class MyGreenlet(Greenlet):
         print(self.message)
         gevent.sleep(self.n)
 
-g = MyGreenlet("Hi there!", 3)
+g = MyGreenlet("Hallo!", 3)
 g.start()
 g.join()
 ]]]
 [[[end]]]
 
 
-## Greenlet State
+## Greenlet-Zustände
 
-Like any other segment of code, Greenlets can fail in various
-ways. A greenlet may fail to throw an exception, fail to halt or
-consume too many system resources.
+Wie jeder andere Code-Teil können Greenlets auf verschiedene
+Wege fehlschlagen. Ein Greenlet mag fehlschlagen, weil es eine
+Exception wirft, um das Program zu beenden oder weil es zu
+viele System-Resourcen benötigt.
 
-The internal state of a greenlet is generally a time-dependent
-parameter. There are a number of flags on greenlets which let
-you monitor the state of the thread:
+Der interne Zustand eines Greenlets ist normalerweise ein
+von der Zeit abhängiger Parameter. Es gibt einige Flags in
+Greenlets, die es ermöglichen, den Zustand des Threads zu
+beobachten:
 
-- ``started`` -- Boolean, indicates whether the Greenlet has been started
-- ``ready()`` -- Boolean, indicates whether the Greenlet has halted
-- ``successful()`` -- Boolean, indicates whether the Greenlet has halted and not thrown an exception
-- ``value`` -- arbitrary, the value returned by the Greenlet
-- ``exception`` -- exception, uncaught exception instance thrown inside the greenlet
+- ``started`` -- Boolean, zeigt an, ob das Greenlet gestartet wurde
+- ``ready()`` -- Boolean, zeigt an, ob das Greenlet angehalten ist
+- ``successful()`` -- Boolean, zeigt an, ob das Greenlet angehalten ist und keine Exception geworfen hat
+- ``value`` -- jeglicher Wert, der Rückgabewert des Greenlets
+- ``exception`` -- Exception, nicht aufgefangene Exception, die innerhalb des Greenlets geworfen wurde
 
 [[[cog
 import gevent
 
 def win():
-    return 'You win!'
+    return 'Gewonnen!'
 
 def fail():
-    raise Exception('You fail at failing.')
+    raise Exception('Du bist ein Verlierer im Verlieren.')
 
 winner = gevent.spawn(win)
 loser = gevent.spawn(fail)
@@ -382,13 +399,13 @@ loser = gevent.spawn(fail)
 print(winner.started) # True
 print(loser.started)  # True
 
-# Exceptions raised in the Greenlet, stay inside the Greenlet.
+# Exceptions die im Greenlet geworfen wurden bleiben im Greenlet.
 try:
     gevent.joinall([winner, loser])
 except Exception as e:
-    print('This will never be reached')
+    print('Hierhin kommen wir nie')
 
-print(winner.value) # 'You win!'
+print(winner.value) # 'Gewonnen!'
 print(loser.value)  # None
 
 print(winner.ready()) # True
@@ -397,28 +414,30 @@ print(loser.ready())  # True
 print(winner.successful()) # True
 print(loser.successful())  # False
 
-# The exception raised in fail, will not propagate outside the
-# greenlet. A stack trace will be printed to stdout but it
-# will not unwind the stack of the parent.
+# Die Exception die in fail geworfen wurde wird nicht ausserhalb
+# des Greenlets propagiert. Ein stacktrace wird nach stdout geschrieben,
+# aber der Stack des Parents wird nicht aufgerollt.
 
 print(loser.exception)
 
-# It is possible though to raise the exception again outside
+# Es ist jedoch möglich die Exception auch ausserhalb wieder
+# zu werden
 # raise loser.exception
-# or with
+# oder mit
 # loser.get()
 ]]]
 [[[end]]]
 
-## Program Shutdown
+## Programmende
 
-Greenlets that fail to yield when the main program receives a
-SIGQUIT may hold the program's execution longer than expected.
-This results in so called "zombie processes" which need to be
-killed from outside of the Python interpreter.
+Greenlets, die nicht beenden, wenn das Hauptprogramm ein SIGQUIT
+erhält, können die Programmausführung länger als erwartet weiterführen.
+Diese werden zu sogenannten "Zombie-Prozessen", die ausserhalb des
+Python-Interpreters beendet werden müssen.
 
-A common pattern is to listen SIGQUIT events on the main program
-and to invoke ``gevent.shutdown`` before exit.
+Ein häufig verwendetes Muster ist es, auf SIGQUIT-Signale in Richtung
+des Hauptprogramms zu hören und ``gevent.shutdown`` vor dem Beenden
+des Programms aufzurufen.
 
 <pre>
 <code class="python">import gevent
@@ -436,8 +455,8 @@ if __name__ == '__main__':
 
 ## Timeouts
 
-Timeouts are a constraint on the runtime of a block of code or a
-Greenlet.
+Timeouts sind eine Einschränkung der Laufzeit eines Code-Blocks
+oder Greenlets.
 
 <pre>
 <code class="python">
@@ -455,18 +474,19 @@ def wait():
 try:
     gevent.spawn(wait).join()
 except Timeout:
-    print('Could not complete')
+    print('Konnte nicht beendet werden')
 
 </code>
 </pre>
 
-They can also be used with a context manager, in a ``with`` statement.
+Sie können auch mit einem Context Manager in einem ``with``-Ausdruck
+verwendet werden.
 
 <pre>
 <code class="python">import gevent
 from gevent import Timeout
 
-time_to_wait = 5 # seconds
+time_to_wait = 5 # Sekunden
 
 class TooLong(Exception):
     pass
@@ -476,8 +496,9 @@ with Timeout(time_to_wait, TooLong):
 </code>
 </pre>
 
-In addition, gevent also provides timeout arguments for a
-variety of Greenlet and data stucture related calls. For example:
+Zusätzlich liefert gevent auch Timeout-Argumente für eine
+Vielzahl von Greenlet- und Datenstrukturen-basierten Aufrufen.
+Zum Beispiel:
 
 [[[cog
 import gevent
@@ -492,7 +513,7 @@ thread1 = gevent.spawn(wait)
 try:
     thread1.join(timeout=timer)
 except Timeout:
-    print('Thread 1 timed out')
+    print('Timeout in Thread 1')
 
 # --
 
@@ -502,14 +523,14 @@ thread2 = gevent.spawn(wait)
 try:
     thread2.get(timeout=timer)
 except Timeout:
-    print('Thread 2 timed out')
+    print('Timeout in Thread 2')
 
 # --
 
 try:
     gevent.with_timeout(1, wait)
 except Timeout:
-    print('Thread 3 timed out')
+    print('Timeout in Thread 3')
 
 ]]]
 [[[end]]]
@@ -1169,9 +1190,9 @@ manner.  You can install gevent-zeromq from PyPi via:  ``pip install
 gevent-zeromq``
 
 [[[cog
-# Note: Remember to ``pip install pyzmq gevent_zeromq``
+# Note: Remember to ``pip install pyzmq``
 import gevent
-from gevent_zeromq import zmq
+import zmq.green as zmq
 
 # Global Context
 context = zmq.Context()
