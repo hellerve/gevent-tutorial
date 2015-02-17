@@ -430,13 +430,14 @@ print(loser.exception)
 
 ## Programmende
 
-Greenlets that fail to yield when the main program receives a
-SIGQUIT may hold the program's execution longer than expected.
-This results in so called "zombie processes" which need to be
-killed from outside of the Python interpreter.
+Greenlets, die nicht beenden, wenn das Hauptprogramm ein SIGQUIT
+erhält, können die Programmausführung länger als erwartet weiterführen.
+Diese werden zu sogenannten "Zombie-Prozessen", die ausserhalb des
+Python-Interpreters beendet werden müssen.
 
-A common pattern is to listen SIGQUIT events on the main program
-and to invoke ``gevent.shutdown`` before exit.
+Ein häufig verwendetes Muster ist es, auf SIGQUIT-Signale in Richtung
+des Hauptprogramms zu hören und ``gevent.shutdown`` vor dem Beenden
+des Programms aufzurufen.
 
 <pre>
 <code class="python">import gevent
@@ -454,8 +455,8 @@ if __name__ == '__main__':
 
 ## Timeouts
 
-Timeouts are a constraint on the runtime of a block of code or a
-Greenlet.
+Timeouts sind eine Einschränkung der Laufzeit eines Code-Blocks
+oder Greenlets.
 
 <pre>
 <code class="python">
@@ -473,18 +474,19 @@ def wait():
 try:
     gevent.spawn(wait).join()
 except Timeout:
-    print('Could not complete')
+    print('Konnte nicht beendet werden')
 
 </code>
 </pre>
 
-They can also be used with a context manager, in a ``with`` statement.
+Sie können auch mit einem Context Manager in einem ``with``-Ausdruck
+verwendet werden.
 
 <pre>
 <code class="python">import gevent
 from gevent import Timeout
 
-time_to_wait = 5 # seconds
+time_to_wait = 5 # Sekunden
 
 class TooLong(Exception):
     pass
@@ -494,8 +496,9 @@ with Timeout(time_to_wait, TooLong):
 </code>
 </pre>
 
-In addition, gevent also provides timeout arguments for a
-variety of Greenlet and data stucture related calls. For example:
+Zusätzlich liefert gevent auch Timeout-Argumente für eine
+Vielzahl von Greenlet- und Datenstrukturen-basierten Aufrufen.
+Zum Beispiel:
 
 [[[cog
 import gevent
@@ -510,7 +513,7 @@ thread1 = gevent.spawn(wait)
 try:
     thread1.join(timeout=timer)
 except Timeout:
-    print('Thread 1 timed out')
+    print('Timeout in Thread 1')
 
 # --
 
@@ -520,14 +523,14 @@ thread2 = gevent.spawn(wait)
 try:
     thread2.get(timeout=timer)
 except Timeout:
-    print('Thread 2 timed out')
+    print('Timeout in Thread 2')
 
 # --
 
 try:
     gevent.with_timeout(1, wait)
 except Timeout:
-    print('Thread 3 timed out')
+    print('Timeout in Thread 3')
 
 ]]]
 [[[end]]]

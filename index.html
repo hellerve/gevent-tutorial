@@ -264,16 +264,16 @@ Aufgabe 7 beendet
 Aufgabe 8 beendet
 Aufgabe 9 beendet
 Asynchron:
+Aufgabe 5 beendet
+Aufgabe 0 beendet
+Aufgabe 1 beendet
+Aufgabe 6 beendet
+Aufgabe 8 beendet
+Aufgabe 2 beendet
 Aufgabe 3 beendet
 Aufgabe 4 beendet
-Aufgabe 9 beendet
-Aufgabe 1 beendet
-Aufgabe 2 beendet
-Aufgabe 5 beendet
 Aufgabe 7 beendet
-Aufgabe 8 beendet
-Aufgabe 0 beendet
-Aufgabe 6 beendet
+Aufgabe 9 beendet
 </pre></code></p>
 <p>In der synchronen Funktion laufen alle Aufrufe von <code>task()</code>
 sequentiell ab, was ein <em>blockierendes</em> (d.h. die Ausführung
@@ -334,25 +334,25 @@ asynchronous()
 <p></code>
 <pre><code class="python">
 Synchron:
-Prozess 1: Tue, 17 Feb 2015 14:50:23 +0000
-Prozess 2: Tue, 17 Feb 2015 14:50:23 +0000
-Prozess 3: Tue, 17 Feb 2015 14:50:24 +0000
-Prozess 4: Tue, 17 Feb 2015 14:50:24 +0000
-Prozess 5: Tue, 17 Feb 2015 14:50:24 +0000
-Prozess 6: Tue, 17 Feb 2015 14:50:24 +0000
-Prozess 7: Tue, 17 Feb 2015 14:50:24 +0000
-Prozess 8: Tue, 17 Feb 2015 14:50:25 +0000
-Prozess 9: Tue, 17 Feb 2015 14:50:25 +0000
+Prozess 1: Tue, 17 Feb 2015 15:02:26 +0000
+Prozess 2: Tue, 17 Feb 2015 15:02:26 +0000
+Prozess 3: Tue, 17 Feb 2015 15:02:26 +0000
+Prozess 4: Tue, 17 Feb 2015 15:02:26 +0000
+Prozess 5: Tue, 17 Feb 2015 15:02:26 +0000
+Prozess 6: Tue, 17 Feb 2015 15:02:27 +0000
+Prozess 7: Tue, 17 Feb 2015 15:02:27 +0000
+Prozess 8: Tue, 17 Feb 2015 15:02:27 +0000
+Prozess 9: Tue, 17 Feb 2015 15:02:27 +0000
 Asynchron:
-Prozess 6: Tue, 17 Feb 2015 14:50:25 +0000
-Prozess 4: Tue, 17 Feb 2015 14:50:25 +0000
-Prozess 5: Tue, 17 Feb 2015 14:50:25 +0000
-Prozess 9: Tue, 17 Feb 2015 14:50:25 +0000
-Prozess 8: Tue, 17 Feb 2015 14:50:25 +0000
-Prozess 3: Tue, 17 Feb 2015 14:50:25 +0000
-Prozess 2: Tue, 17 Feb 2015 14:50:25 +0000
-Prozess 1: Tue, 17 Feb 2015 14:50:25 +0000
-Prozess 7: Tue, 17 Feb 2015 14:50:25 +0000
+Prozess 3: Tue, 17 Feb 2015 15:02:27 +0000
+Prozess 2: Tue, 17 Feb 2015 15:02:27 +0000
+Prozess 7: Tue, 17 Feb 2015 15:02:27 +0000
+Prozess 4: Tue, 17 Feb 2015 15:02:27 +0000
+Prozess 5: Tue, 17 Feb 2015 15:02:27 +0000
+Prozess 9: Tue, 17 Feb 2015 15:02:27 +0000
+Prozess 6: Tue, 17 Feb 2015 15:02:27 +0000
+Prozess 8: Tue, 17 Feb 2015 15:02:27 +0000
+Prozess 1: Tue, 17 Feb 2015 15:02:27 +0000
 </pre></code></p>
 <h2 id="determinismus">Determinismus</h2>
 <p>Wie bereits erwähnt sind Greenlets deterministisch. Gibt man ihnen
@@ -553,12 +553,13 @@ False
 Du bist ein Verlierer im Verlieren.
 </pre></code></p>
 <h2 id="programmende">Programmende</h2>
-<p>Greenlets that fail to yield when the main program receives a
-SIGQUIT may hold the program's execution longer than expected.
-This results in so called "zombie processes" which need to be
-killed from outside of the Python interpreter.</p>
-<p>A common pattern is to listen SIGQUIT events on the main program
-and to invoke <code>gevent.shutdown</code> before exit.</p>
+<p>Greenlets, die nicht beenden, wenn das Hauptprogramm ein SIGQUIT
+erhält, können die Programmausführung länger als erwartet weiterführen.
+Diese werden zu sogenannten "Zombie-Prozessen", die ausserhalb des
+Python-Interpreters beendet werden müssen.</p>
+<p>Ein häufig verwendetes Muster ist es, auf SIGQUIT-Signale in Richtung
+des Hauptprogramms zu hören und <code>gevent.shutdown</code> vor dem Beenden
+des Programms aufzurufen.</p>
 <pre>
 <code class="python">import gevent
 import signal
@@ -574,8 +575,8 @@ if __name__ == '__main__':
 </pre>
 
 <h2 id="timeouts">Timeouts</h2>
-<p>Timeouts are a constraint on the runtime of a block of code or a
-Greenlet.</p>
+<p>Timeouts sind eine Einschränkung der Laufzeit eines Code-Blocks
+oder Greenlets.</p>
 <pre>
 <code class="python">
 import gevent
@@ -592,17 +593,18 @@ def wait():
 try:
     gevent.spawn(wait).join()
 except Timeout:
-    print('Could not complete')
+    print('Konnte nicht beendet werden')
 
 </code>
 </pre>
 
-<p>They can also be used with a context manager, in a <code>with</code> statement.</p>
+<p>Sie können auch mit einem Context Manager in einem <code>with</code>-Ausdruck
+verwendet werden.</p>
 <pre>
 <code class="python">import gevent
 from gevent import Timeout
 
-time_to_wait = 5 # seconds
+time_to_wait = 5 # Sekunden
 
 class TooLong(Exception):
     pass
@@ -612,8 +614,9 @@ with Timeout(time_to_wait, TooLong):
 </code>
 </pre>
 
-<p>In addition, gevent also provides timeout arguments for a
-variety of Greenlet and data stucture related calls. For example:</p>
+<p>Zusätzlich liefert gevent auch Timeout-Argumente für eine
+Vielzahl von Greenlet- und Datenstrukturen-basierten Aufrufen.
+Zum Beispiel:</p>
 <pre><code class="python">
 import gevent
 from gevent import Timeout
@@ -627,7 +630,7 @@ thread1 = gevent.spawn(wait)
 try:
     thread1.join(timeout=timer)
 except Timeout:
-    print('Thread 1 timed out')
+    print('Timeout in Thread 1')
 
 # --
 
@@ -637,22 +640,22 @@ thread2 = gevent.spawn(wait)
 try:
     thread2.get(timeout=timer)
 except Timeout:
-    print('Thread 2 timed out')
+    print('Timeout in Thread 2')
 
 # --
 
 try:
     gevent.with_timeout(1, wait)
 except Timeout:
-    print('Thread 3 timed out')
+    print('Timeout in Thread 3')
 
 </pre>
 
 <p></code>
 <pre><code class="python">
-Thread 1 timed out
-Thread 2 timed out
-Thread 3 timed out
+Timeout in Thread 1
+Timeout in Thread 2
+Timeout in Thread 3
 </pre></code></p>
 <h2 id="monkeypatching">Monkeypatching</h2>
 <p>Alas we come to dark corners of Gevent. I've avoided mentioning
@@ -998,11 +1001,11 @@ for i in igroup.imap_unordered(intensive, xrange(3)):
 <p></code>
 <pre><code class="python">
 Size of group 3
-Hello from Greenlet 4310205936
+Hello from Greenlet 4413683184
 Size of group 3
-Hello from Greenlet 4310207856
+Hello from Greenlet 4413685104
 Size of group 3
-Hello from Greenlet 4310206576
+Hello from Greenlet 4413683824
 Ordered
 ('task', 0)
 ('task', 1)
