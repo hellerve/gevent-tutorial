@@ -25,6 +25,7 @@ In chronologischer Reihenfolge der Mitarbeit:
 [Eddie Hebert](https://github.com/ehebert)
 [Alexis Metaireau](http://notmyidea.org)
 [Daniel Velkov](https://github.com/djv)
+[Veit Heller](https://veitheller.de)
 
 Ausserdem ein Dankeschön an Denis Bilenko dafür, dass er gevent
 geschrieben und uns bei der Erstellung dieses Tutorials beraten hat.
