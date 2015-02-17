@@ -538,18 +538,18 @@ except Timeout:
 
 ## Monkeypatching
 
-Alas we come to dark corners of Gevent. I've avoided mentioning
-monkey patching up until now to try and motivate the powerful
-coroutine patterns, but the time has come to discuss the dark arts
-of monkey-patching. If you noticed above we invoked the command
-``monkey.patch_socket()``. This is a purely side-effectful command to
-modify the standard library's socket library.
+Leider kommen wir nun zu den dunklen Ecken von Gevent. Ich habe es vermieden,
+Monkeypatching bis jetzt zu erwähnen, um die mächtigen Koroutinen zu betonen,
+aber die Zeit ist gekommen die dunklen Künste des Monkeypatching zu erklären.
+Wir haben oben bereits das Kommando ``monkey.patch_socket()`` ausgeführt.
+Dies ist ein reines Seiteneffekt-Kommando um die Socket-Programme der 
+Standard-Bibliothek zu modifizieren.
 
 <pre>
 <code class="python">import socket
 print(socket.socket)
 
-print("After monkey patch")
+print("Nach dem monkey patch")
 from gevent import monkey
 monkey.patch_socket()
 print(socket.socket)
@@ -557,47 +557,51 @@ print(socket.socket)
 import select
 print(select.select)
 monkey.patch_select()
-print("After monkey patch")
+print("Nach dem monkey patch")
 print(select.select)
 </code>
 </pre>
 
 <pre>
 <code class="python">class 'socket.socket'
-After monkey patch
+Nach dem monkey patch
 class 'gevent.socket.socket'
 
 built-in function select
-After monkey patch
+Nach dem monkey patch
 function select at 0x1924de8
 </code>
 </pre>
 
-Python's runtime allows for most objects to be modified at runtime
-including modules, classes, and even functions. This is generally an
-astoudingly bad idea since it creates an "implicit side-effect" that is
-most often extremely difficult to debug if problems occur, nevertheless
-in extreme situations where a library needs to alter the fundamental
-behavior of Python itself monkey patches can be used. In this case gevent
-is capable of patching most of the blocking system calls in the standard
-library including those in ``socket``, ``ssl``, ``threading`` and
-``select`` modules to instead behave cooperatively.
+Pythons Runtime erlaubt es, dass die meisten Objekte zur Laufzeit
+modifiziert werden, auch Module, Klassen und sogar Funktionen.
+Das ist normalerweise eine unglaublich schlechte Idee, da es zu einem
+"impliziten Seiteneffekt" führt, der meistens extrem schwer zu
+debuggen ist, falls Probleme auftreten; nichtsdestotroz können 
+Monkey Patches in extremen Situationen benutzt werden, in denen
+eine Bibliothek das fundamentale Verhalten von Python selbst
+verändern muss. In diesem Fall ist gevent in der Lage, die meisten
+blockierenden System Calls in der Standardbibliothek so zu patchen,
+dass sie stattdessen kooperativ arbeiten,
+einschliesslich der Module in  ``socket``, ``ssl``, ``threading`` und
+``select``.
 
-For example, the Redis python bindings normally uses regular tcp
-sockets to communicate with the ``redis-server`` instance. Simply
-by invoking ``gevent.monkey.patch_all()`` we can make the redis
-bindings schedule requests cooperatively and work with the rest
-of our gevent stack.
+Zum Beispiel nutzt die Redis-Anbindung an Python reguläre TCP-Sockets,
+um mit der ``redis-server``-Instanz zu kommunizieren. Nur durch den
+Aufruf von ``gevent.monkey.patch_all()`` können wir die Redis-Anbindung
+dazu bringen, Anfragen kooperativ zu behandeln und mit dem Rest unseres
+gevent-Überbaus zu interagieren.
 
-This lets us integrate libraries that would not normally work with
-gevent without ever writing a single line of code. While monkey-patching
-is still evil, in this case it is a "useful evil".
+Dies lässt und Bibliotheken integrieren, die normalerweise nicht mit
+gevent arbeiten würden, ohne jemals eine einzige Zeile Code schreiben
+zu müssen. Obwohl Monkey Patching immer noch schlecht ist, ist es
+in diesem Fall ein "nützliches Übel".
 
-# Data Structures
+# Daten-Strukturen
 
 ## Events
 
-Events are a form of asynchronous communication between
+Events sind eine Form der asynchronen Kommunikation zwischen
 Greenlets.
 
 <pre>
@@ -605,25 +609,26 @@ Greenlets.
 from gevent.event import Event
 
 '''
-Illustrates the use of events
+Illustriert den Nutzen von Events
 '''
 
 
 evt = Event()
 
 def setter():
-    '''After 3 seconds, wake all threads waiting on the value of evt'''
-	print('A: Hey wait for me, I have to do something')
+    '''Nach 3 Sekunden werden alle Threads die auf den Wert von evt warten
+       aufgeweckt'''
+	print('A: Hey, warte auf mich, ich muss etwas besorgen')
 	gevent.sleep(3)
-	print("Ok, I'm done")
+	print("Ok, ich bin fertig")
 	evt.set()
 
 
 def waiter():
-	'''After 3 seconds the get call will unblock'''
-	print("I'll wait for you")
-	evt.wait()  # blocking
-	print("It's about time")
+	'''Nach 3 Sekundenwird der get-Aufruf entblockt'''
+	print("Ich werde auf dich warten")
+	evt.wait()  # blockierend
+	print("Wird ja auch Zeit")
 
 def main():
 	gevent.joinall([
@@ -640,11 +645,11 @@ if __name__ == '__main__': main()
 </code>
 </pre>
 
-An extension of the Event object is the AsyncResult which
-allows you to send a value along with the wakeup call. This is
-sometimes called a future or a deferred, since it holds a
-reference to a future value that can be set on an arbitrary time
-schedule.
+Eine Erweiterun des Event-Objekts ist ein AsyncResult, welches
+es erlaubt, zusammen mit dem Weckruf einen Wert zu versenden.
+Dies wird manchmal future oder deferred genannt, da es eine
+Referenz auf einen zukünftigen Wert hält, der zu einem frei
+wählbaren Zeitpunkt gesetzt werden kann.
 
 <pre>
 <code class="python">import gevent
@@ -653,15 +658,15 @@ a = AsyncResult()
 
 def setter():
     """
-    After 3 seconds set the result of a.
+    Setze das Ergebnis von a nach 3 Sekunden.
     """
     gevent.sleep(3)
-    a.set('Hello!')
+    a.set('Hallo!')
 
 def waiter():
     """
-    After 3 seconds the get call will unblock after the setter
-    puts a value into the AsyncResult.
+    Nach 3 Sekunden wird der get call entblockt, nachdem der Setter
+    einen Wert in das AsyncResult schreibt.
     """
     print(a.get())
 
