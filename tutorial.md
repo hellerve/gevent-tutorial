@@ -203,7 +203,8 @@ einem Server, wird sich die Laufzeit von ``fetch()`` in verschiedenen
 Abfragen unterscheiden, in Abhängigkeit von der Last des Servers zur Zeit
 der Abfrage.
 
-[[[cog
+<pre>
+<code class="python">
 import gevent.monkey
 gevent.monkey.patch_socket()
 
@@ -235,8 +236,8 @@ synchronous()
 
 print('Asynchron:')
 asynchronous()
-]]]
-[[[end]]]
+</code>
+</pre>
 
 ## Determinismus
 
@@ -680,13 +681,12 @@ gevent.joinall([
 
 ## Queues
 
-Queues are ordered sets of data that have the usual ``put`` / ``get``
-operations but are written in a way such that they can be safely
-manipulated across Greenlets.
+Queues sind geoordnete Datensets, die die üblichen ``put``/``get``
+Operationen unterstützt, aber auf eine solche Weise implementiert
+sind, dass sie sicher zwischen Greenlets manipuliert werden können.
 
-For example if one Greenlet grabs an item off of the queue, the
-same item will not be grabbed by another Greenlet executing
-simultaneously.
+Zum Beispiel wird bei simultanem Zugriff zweier Greenlets auf
+ein Item der Queue nciht zweimal das selbe Item herausgenommen.
 
 [[[cog
 import gevent
@@ -697,10 +697,10 @@ tasks = Queue()
 def worker(n):
     while not tasks.empty():
         task = tasks.get()
-        print('Worker %s got task %s' % (n, task))
+        print('Arbeiter %s hat Task %s bekommen' % (n, task))
         gevent.sleep(0)
 
-    print('Quitting time!')
+    print('Ende!')
 
 def boss():
     for i in xrange(1,25):
@@ -716,23 +716,22 @@ gevent.joinall([
 ]]]
 [[[end]]]
 
-Queues can also block on either ``put`` or ``get`` as the need arises.
+Queues können auch ``put`` und ``get``-Operationen blockieren,
+falls es nötig wird.
 
-Each of the ``put`` and ``get`` operations has a non-blocking
-counterpart, ``put_nowait`` and
-``get_nowait`` which will not block, but instead raise
-either ``gevent.queue.Empty`` or
-``gevent.queue.Full`` if the operation is not possible.
+Jede der ``put`` und ``get``-Operationen hat einen nicht-blockierenden
+Gegensata, ``put_nowait`` und ``get_nowait``, welche anstatt zu blockieren
+entweder ``gevent.queue.Empty`` oder ``gevent.queue.Full`` zurückgeben,
+falls die Operation nicht möglich ist.
 
-In this example we have the boss running simultaneously to the
-workers and have a restriction on the Queue preventing it from containing
-more than three elements. This restriction means that the ``put``
-operation will block until there is space on the queue.
-Conversely the ``get`` operation will block if there are
-no elements on the queue to fetch, it also takes a timeout
-argument to allow for the queue to exit with the exception
-``gevent.queue.Empty`` if no work can be found within the
-time frame of the Timeout.
+In diesem beispiel läuft der Boss zur gleichen Zeit wie die Arbeiter
+und auf der Queue liegt eine Restriktion, die verhindert, dass darauf
+mehr als drei Elemente liegen. Diese Restriktion bedeutet, dass die ``put``
+Operation blockiert bis kein Platz mehr in der Queue ist. Umgekehrt blockiert
+die ``get``-Operation, falls keine Elemente mehr in der Queue sind und
+nimmt ausserdem ein Timeout-Argument, das es erlaubt, dass die Queue 
+mit der Exception ``gevent.queue.Empty`` beendet wird, falls innerhalb
+der Zeitspanne des Timeouts keine Arbeit mehr gefunden wird.
 
 [[[cog
 import gevent
@@ -744,24 +743,24 @@ def worker(name):
     try:
         while True:
             task = tasks.get(timeout=1) # decrements queue size by 1
-            print('Worker %s got task %s' % (name, task))
+            print('Arbeiter %s hat Task %s bekommen' % (name, task))
             gevent.sleep(0)
     except Empty:
-        print('Quitting time!')
+        print('Ende!')
 
 def boss():
     """
-    Boss will wait to hand out work until a individual worker is
-    free since the maxsize of the task queue is 3.
+    Der Boss wartet mit dem Austeilen der Arbeit, bis ein individueller
+    Arbeiter frei ist, da die Maximalgrösse der Task-Queue 3 ist.
     """
 
     for i in xrange(1,10):
         tasks.put(i)
-    print('Assigned all work in iteration 1')
+    print('Alle Arbeit in Iteration 1 ausgeteilt')
 
     for i in xrange(10,20):
         tasks.put(i)
-    print('Assigned all work in iteration 2')
+    print('Alle Arbeit in Iteration 2 ausgeteilt')
 
 gevent.joinall([
     gevent.spawn(boss),
@@ -772,11 +771,12 @@ gevent.joinall([
 ]]]
 [[[end]]]
 
-## Groups and Pools
+## Groups und Pools
 
-A group is a collection of running greenlets which are managed
-and scheduled together as group. It also doubles as parallel
-dispatcher that mirrors the Python ``multiprocessing`` library.
+Eine Group ist eine Sammlung laufender Greenlets, die zusammen
+als Gruppe verwaltet und geleitet werden. Es dient ausserdem
+als paralleler Dispatcher, der die Python ``multiprocessing``-Bibliothek
+spiegelt.
 
 [[[cog
 import gevent
@@ -800,11 +800,11 @@ group.join()
 ]]]
 [[[end]]]
 
-This is very useful for managing groups of asynchronous tasks.
+Das ist sehr nützlich, um Gruppen asynchroner Aufgaben zu verwalten.
 
-As mentioned above, ``Group`` also provides an API for dispatching
-jobs to grouped greenlets and collecting their results in various
-ways.
+Wie oben erwähnt, hat ``Group`` auch eine API, um Jobs an gruppierte
+Greenlets auszuliefern und deren Resultate wieder einzusammeln; all
+dies auf mehreren verschiedenen Wegen.
 
 [[[cog
 import gevent
@@ -814,8 +814,8 @@ from gevent.pool import Group
 group = Group()
 
 def hello_from(n):
-    print('Size of group %s' % len(group))
-    print('Hello from Greenlet %s' % id(getcurrent()))
+    print('Ausmass der Gruppe: %s' % len(group))
+    print('Hallo von Greenlet %s' % id(getcurrent()))
 
 group.map(hello_from, xrange(3))
 
@@ -824,13 +824,13 @@ def intensive(n):
     gevent.sleep(3 - n)
     return 'task', n
 
-print('Ordered')
+print('Geordnet')
 
 ogroup = Group()
 for i in ogroup.imap(intensive, xrange(3)):
     print(i)
 
-print('Unordered')
+print('Ungeordnet')
 
 igroup = Group()
 for i in igroup.imap_unordered(intensive, xrange(3)):
@@ -839,10 +839,11 @@ for i in igroup.imap_unordered(intensive, xrange(3)):
 ]]]
 [[[end]]]
 
-A pool is a structure designed for handling dynamic numbers of
-greenlets which need to be concurrency-limited.  This is often
-desirable in cases where one wants to do many network or IO bound
-tasks in parallel.
+Ein Pool ist eine Struktur, die dafür entwickelt wurde, eine
+dynamische Anzahl von Greenlets, die in ihrer Nebenläufigkeit 
+limitiert werden müssen, zu handhaben. Dies ist oftmals gewünscht,
+wenn viele Netzwerk- oder IO-basierte Aufgaben parallel bearbeitet
+werden sollen.
 
 [[[cog
 import gevent
@@ -851,15 +852,15 @@ from gevent.pool import Pool
 pool = Pool(2)
 
 def hello_from(n):
-    print('Size of pool %s' % len(pool))
+    print('Ausmass des Pools %s' % len(pool))
 
 pool.map(hello_from, xrange(3))
 ]]]
 [[[end]]]
 
-Often when building gevent driven services one will center the
-entire service around a pool structure. An example might be a
-class which polls on various sockets.
+Oftmals wird beim Bau eines gevent-basierten Services der gesamte
+Service um eine Pool-Struktur herum gebaut. Ein Beispiel könnte
+eine Klasse sein, die auf verschiedenen Sockets arbeitet.
 
 <pre>
 <code class="python">from gevent.pool import Pool
@@ -876,7 +877,7 @@ class SocketPool(object):
 
     def add_handler(self, socket):
         if self.pool.full():
-            raise Exception("At maximum pool size")
+            raise Exception("Pool hat Maximum erreicht")
         else:
             self.pool.spawn(self.listen, socket)
 
@@ -886,7 +887,7 @@ class SocketPool(object):
 </code>
 </pre>
 
-## Locks and Semaphores
+## Locks und Semaphoren
 
 A semaphore is a low level synchronization primitive that allows
 greenlets to coordinate and limit concurrent access or execution. A

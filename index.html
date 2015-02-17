@@ -73,11 +73,11 @@
 <li><a href="#monkeypatching">Monkeypatching</a></li>
 </ul>
 </li>
-<li><a href="#data-structures">Data Structures</a><ul>
+<li><a href="#daten-strukturen">Daten-Strukturen</a><ul>
 <li><a href="#events">Events</a></li>
 <li><a href="#queues">Queues</a></li>
-<li><a href="#groups-and-pools">Groups and Pools</a></li>
-<li><a href="#locks-and-semaphores">Locks and Semaphores</a></li>
+<li><a href="#groups-und-pools">Groups und Pools</a></li>
+<li><a href="#locks-und-semaphoren">Locks und Semaphoren</a></li>
 <li><a href="#thread-locals">Thread Locals</a></li>
 <li><a href="#subprocess">Subprocess</a></li>
 <li><a href="#actors">Actors</a></li>
@@ -280,12 +280,12 @@ Asynchron:
 Aufgabe 1 beendet
 Aufgabe 2 beendet
 Aufgabe 3 beendet
-Aufgabe 5 beendet
 Aufgabe 7 beendet
-Aufgabe 0 beendet
 Aufgabe 4 beendet
-Aufgabe 8 beendet
+Aufgabe 5 beendet
+Aufgabe 0 beendet
 Aufgabe 6 beendet
+Aufgabe 8 beendet
 Aufgabe 9 beendet
 </pre></code></p>
 <p>In der synchronen Funktion laufen alle Aufrufe von <code>task()</code>
@@ -310,7 +310,8 @@ Im asynchronen Fall beläuft sich die maximale Gesamtzeit auf ungefähr
 einem Server, wird sich die Laufzeit von <code>fetch()</code> in verschiedenen
 Abfragen unterscheiden, in Abhängigkeit von der Last des Servers zur Zeit
 der Abfrage.</p>
-<pre><code class="python">
+<pre>
+<code class="python">
 import gevent.monkey
 gevent.monkey.patch_socket()
 
@@ -342,31 +343,9 @@ synchronous()
 
 print('Asynchron:')
 asynchronous()
+</code>
 </pre>
 
-<p></code>
-<pre><code class="python">
-Synchron:
-Prozess 1: Tue, 17 Feb 2015 15:12:06 +0000
-Prozess 2: Tue, 17 Feb 2015 15:12:06 +0000
-Prozess 3: Tue, 17 Feb 2015 15:12:06 +0000
-Prozess 4: Tue, 17 Feb 2015 15:12:07 +0000
-Prozess 5: Tue, 17 Feb 2015 15:12:07 +0000
-Prozess 6: Tue, 17 Feb 2015 15:12:07 +0000
-Prozess 7: Tue, 17 Feb 2015 15:12:07 +0000
-Prozess 8: Tue, 17 Feb 2015 15:12:07 +0000
-Prozess 9: Tue, 17 Feb 2015 15:12:07 +0000
-Asynchron:
-Prozess 8: Tue, 17 Feb 2015 15:12:08 +0000
-Prozess 4: Tue, 17 Feb 2015 15:12:08 +0000
-Prozess 1: Tue, 17 Feb 2015 15:12:08 +0000
-Prozess 2: Tue, 17 Feb 2015 15:12:08 +0000
-Prozess 7: Tue, 17 Feb 2015 15:12:08 +0000
-Prozess 5: Tue, 17 Feb 2015 15:12:08 +0000
-Prozess 3: Tue, 17 Feb 2015 15:12:08 +0000
-Prozess 6: Tue, 17 Feb 2015 15:12:08 +0000
-Prozess 9: Tue, 17 Feb 2015 15:12:08 +0000
-</pre></code></p>
 <h2 id="determinismus">Determinismus</h2>
 <p>Wie bereits erwähnt sind Greenlets deterministisch. Gibt man ihnen
 den selben Input und konfiguriert man sie gleich, produzieren sie
@@ -671,17 +650,17 @@ Timeout in Thread 2
 Timeout in Thread 3
 </pre></code></p>
 <h2 id="monkeypatching">Monkeypatching</h2>
-<p>Alas we come to dark corners of Gevent. I've avoided mentioning
-monkey patching up until now to try and motivate the powerful
-coroutine patterns, but the time has come to discuss the dark arts
-of monkey-patching. If you noticed above we invoked the command
-<code>monkey.patch_socket()</code>. This is a purely side-effectful command to
-modify the standard library's socket library.</p>
+<p>Leider kommen wir nun zu den dunklen Ecken von Gevent. Ich habe es vermieden,
+Monkeypatching bis jetzt zu erwähnen, um die mächtigen Koroutinen zu betonen,
+aber die Zeit ist gekommen die dunklen Künste des Monkeypatching zu erklären.
+Wir haben oben bereits das Kommando <code>monkey.patch_socket()</code> ausgeführt.
+Dies ist ein reines Seiteneffekt-Kommando um die Socket-Programme der 
+Standard-Bibliothek zu modifizieren.</p>
 <pre>
 <code class="python">import socket
 print(socket.socket)
 
-print("After monkey patch")
+print("Nach dem monkey patch")
 from gevent import monkey
 monkey.patch_socket()
 print(socket.socket)
@@ -689,65 +668,72 @@ print(socket.socket)
 import select
 print(select.select)
 monkey.patch_select()
-print("After monkey patch")
+print("Nach dem monkey patch")
 print(select.select)
 </code>
 </pre>
 
 <pre>
 <code class="python">class 'socket.socket'
-After monkey patch
+Nach dem monkey patch
 class 'gevent.socket.socket'
 
 built-in function select
-After monkey patch
+Nach dem monkey patch
 function select at 0x1924de8
 </code>
 </pre>
 
-<p>Python's runtime allows for most objects to be modified at runtime
-including modules, classes, and even functions. This is generally an
-astoudingly bad idea since it creates an "implicit side-effect" that is
-most often extremely difficult to debug if problems occur, nevertheless
-in extreme situations where a library needs to alter the fundamental
-behavior of Python itself monkey patches can be used. In this case gevent
-is capable of patching most of the blocking system calls in the standard
-library including those in <code>socket</code>, <code>ssl</code>, <code>threading</code> and
-<code>select</code> modules to instead behave cooperatively.</p>
-<p>For example, the Redis python bindings normally uses regular tcp
-sockets to communicate with the <code>redis-server</code> instance. Simply
-by invoking <code>gevent.monkey.patch_all()</code> we can make the redis
-bindings schedule requests cooperatively and work with the rest
-of our gevent stack.</p>
-<p>This lets us integrate libraries that would not normally work with
-gevent without ever writing a single line of code. While monkey-patching
-is still evil, in this case it is a "useful evil".</p>
-<h1 id="data-structures">Data Structures</h1>
+<p>Pythons Runtime erlaubt es, dass die meisten Objekte zur Laufzeit
+modifiziert werden, auch Module, Klassen und sogar Funktionen.
+Das ist normalerweise eine unglaublich schlechte Idee, da es zu einem
+"impliziten Seiteneffekt" führt, der meistens extrem schwer zu
+debuggen ist, falls Probleme auftreten; nichtsdestotroz können 
+Monkey Patches in extremen Situationen benutzt werden, in denen
+eine Bibliothek das fundamentale Verhalten von Python selbst
+verändern muss. In diesem Fall ist gevent in der Lage, die meisten
+blockierenden System Calls in der Standardbibliothek so zu patchen,
+dass sie stattdessen kooperativ arbeiten,
+einschliesslich der Module in  <code>socket</code>, <code>ssl</code>, <code>threading</code> und
+<code>select</code>.</p>
+<p>Zum Beispiel nutzt die Redis-Anbindung an Python reguläre TCP-Sockets,
+um mit der <code>redis-server</code>-Instanz zu kommunizieren. Nur durch den
+Aufruf von <code>gevent.monkey.patch_all()</code> können wir die Redis-Anbindung
+dazu bringen, Anfragen kooperativ zu behandeln und mit dem Rest unseres
+gevent-Überbaus zu interagieren.</p>
+<p>Dies lässt und Bibliotheken integrieren, die normalerweise nicht mit
+gevent arbeiten würden, ohne jemals eine einzige Zeile Code schreiben
+zu müssen. Obwohl Monkey Patching immer noch schlecht ist, ist es
+in diesem Fall ein "nützliches Übel".</p>
+<h1 id="daten-strukturen">Daten-Strukturen</h1>
 <h2 id="events">Events</h2>
-<p>Events are a form of asynchronous communication between
+<p>Events sind eine Form der asynchronen Kommunikation zwischen
 Greenlets.</p>
 <pre>
 <code class="python">import gevent
 from gevent.event import Event
 
 '''
-Illustrates the use of events
+Illustriert den Nutzen von Events
 '''
+
 
 evt = Event()
 
 def setter():
-    '''After 3 seconds, wake all threads waiting on the value of evt'''
-    print('A: Hey wait for me, I have to do something')
+    '''Nach 3 Sekunden werden alle Threads die auf den Wert von evt warten
+       aufgeweckt'''
+    print('A: Hey, warte auf mich, ich muss etwas besorgen')
     gevent.sleep(3)
-    print("Ok, I'm done")
+    print("Ok, ich bin fertig")
     evt.set()
 
+
 def waiter():
-    '''After 3 seconds the get call will unblock'''
-    print("I'll wait for you")
-    evt.wait()  # blocking
-    print("It's about time")
+    '''Nach 3 Sekundenwird der get-Aufruf entblockt'''
+    print("Ich werde auf dich warten")
+    evt.wait()  # blockierend
+    print("Wird ja auch Zeit")
 
 def main():
     gevent.joinall([
@@ -764,11 +750,11 @@ if __name__ == '__main__': main()
 </code>
 </pre>
 
-<p>An extension of the Event object is the AsyncResult which
-allows you to send a value along with the wakeup call. This is
-sometimes called a future or a deferred, since it holds a
-reference to a future value that can be set on an arbitrary time
-schedule.</p>
+<p>Eine Erweiterun des Event-Objekts ist ein AsyncResult, welches
+es erlaubt, zusammen mit dem Weckruf einen Wert zu versenden.
+Dies wird manchmal future oder deferred genannt, da es eine
+Referenz auf einen zukünftigen Wert hält, der zu einem frei
+wählbaren Zeitpunkt gesetzt werden kann.</p>
 <pre>
 <code class="python">import gevent
 from gevent.event import AsyncResult
@@ -776,15 +762,15 @@ a = AsyncResult()
 
 def setter():
     """
-    After 3 seconds set the result of a.
+    Setze das Ergebnis von a nach 3 Sekunden.
     """
     gevent.sleep(3)
-    a.set('Hello!')
+    a.set('Hallo!')
 
 def waiter():
     """
-    After 3 seconds the get call will unblock after the setter
-    puts a value into the AsyncResult.
+    Nach 3 Sekunden wird der get call entblockt, nachdem der Setter
+    einen Wert in das AsyncResult schreibt.
     """
     print(a.get())
 
@@ -797,12 +783,11 @@ gevent.joinall([
 </pre>
 
 <h2 id="queues">Queues</h2>
-<p>Queues are ordered sets of data that have the usual <code>put</code> / <code>get</code>
-operations but are written in a way such that they can be safely
-manipulated across Greenlets.</p>
-<p>For example if one Greenlet grabs an item off of the queue, the
-same item will not be grabbed by another Greenlet executing
-simultaneously.</p>
+<p>Queues sind geoordnete Datensets, die die üblichen <code>put</code>/<code>get</code>
+Operationen unterstützt, aber auf eine solche Weise implementiert
+sind, dass sie sicher zwischen Greenlets manipuliert werden können.</p>
+<p>Zum Beispiel wird bei simultanem Zugriff zweier Greenlets auf
+ein Item der Queue nciht zweimal das selbe Item herausgenommen.</p>
 <pre><code class="python">
 import gevent
 from gevent.queue import Queue
@@ -812,10 +797,10 @@ tasks = Queue()
 def worker(n):
     while not tasks.empty():
         task = tasks.get()
-        print('Worker %s got task %s' % (n, task))
+        print('Arbeiter %s hat Task %s bekommen' % (n, task))
         gevent.sleep(0)
 
-    print('Quitting time!')
+    print('Ende!')
 
 def boss():
     for i in xrange(1,25):
@@ -832,49 +817,48 @@ gevent.joinall([
 
 <p></code>
 <pre><code class="python">
-Worker steve got task 1
-Worker john got task 2
-Worker nancy got task 3
-Worker steve got task 4
-Worker john got task 5
-Worker nancy got task 6
-Worker steve got task 7
-Worker john got task 8
-Worker nancy got task 9
-Worker steve got task 10
-Worker john got task 11
-Worker nancy got task 12
-Worker steve got task 13
-Worker john got task 14
-Worker nancy got task 15
-Worker steve got task 16
-Worker john got task 17
-Worker nancy got task 18
-Worker steve got task 19
-Worker john got task 20
-Worker nancy got task 21
-Worker steve got task 22
-Worker john got task 23
-Worker nancy got task 24
-Quitting time!
-Quitting time!
-Quitting time!
+Arbeiter steve hat Task 1 bekommen
+Arbeiter john hat Task 2 bekommen
+Arbeiter nancy hat Task 3 bekommen
+Arbeiter steve hat Task 4 bekommen
+Arbeiter john hat Task 5 bekommen
+Arbeiter nancy hat Task 6 bekommen
+Arbeiter steve hat Task 7 bekommen
+Arbeiter john hat Task 8 bekommen
+Arbeiter nancy hat Task 9 bekommen
+Arbeiter steve hat Task 10 bekommen
+Arbeiter john hat Task 11 bekommen
+Arbeiter nancy hat Task 12 bekommen
+Arbeiter steve hat Task 13 bekommen
+Arbeiter john hat Task 14 bekommen
+Arbeiter nancy hat Task 15 bekommen
+Arbeiter steve hat Task 16 bekommen
+Arbeiter john hat Task 17 bekommen
+Arbeiter nancy hat Task 18 bekommen
+Arbeiter steve hat Task 19 bekommen
+Arbeiter john hat Task 20 bekommen
+Arbeiter nancy hat Task 21 bekommen
+Arbeiter steve hat Task 22 bekommen
+Arbeiter john hat Task 23 bekommen
+Arbeiter nancy hat Task 24 bekommen
+Ende!
+Ende!
+Ende!
 </pre></code></p>
-<p>Queues can also block on either <code>put</code> or <code>get</code> as the need arises.</p>
-<p>Each of the <code>put</code> and <code>get</code> operations has a non-blocking
-counterpart, <code>put_nowait</code> and
-<code>get_nowait</code> which will not block, but instead raise
-either <code>gevent.queue.Empty</code> or
-<code>gevent.queue.Full</code> if the operation is not possible.</p>
-<p>In this example we have the boss running simultaneously to the
-workers and have a restriction on the Queue preventing it from containing
-more than three elements. This restriction means that the <code>put</code>
-operation will block until there is space on the queue.
-Conversely the <code>get</code> operation will block if there are
-no elements on the queue to fetch, it also takes a timeout
-argument to allow for the queue to exit with the exception
-<code>gevent.queue.Empty</code> if no work can be found within the
-time frame of the Timeout.</p>
+<p>Queues können auch <code>put</code> und <code>get</code>-Operationen blockieren,
+falls es nötig wird.</p>
+<p>Jede der <code>put</code> und <code>get</code>-Operationen hat einen nicht-blockierenden
+Gegensata, <code>put_nowait</code> und <code>get_nowait</code>, welche anstatt zu blockieren
+entweder <code>gevent.queue.Empty</code> oder <code>gevent.queue.Full</code> zurückgeben,
+falls die Operation nicht möglich ist.</p>
+<p>In diesem beispiel läuft der Boss zur gleichen Zeit wie die Arbeiter
+und auf der Queue liegt eine Restriktion, die verhindert, dass darauf
+mehr als drei Elemente liegen. Diese Restriktion bedeutet, dass die <code>put</code>
+Operation blockiert bis kein Platz mehr in der Queue ist. Umgekehrt blockiert
+die <code>get</code>-Operation, falls keine Elemente mehr in der Queue sind und
+nimmt ausserdem ein Timeout-Argument, das es erlaubt, dass die Queue 
+mit der Exception <code>gevent.queue.Empty</code> beendet wird, falls innerhalb
+der Zeitspanne des Timeouts keine Arbeit mehr gefunden wird.</p>
 <pre><code class="python">
 import gevent
 from gevent.queue import Queue, Empty
@@ -885,24 +869,24 @@ def worker(name):
     try:
         while True:
             task = tasks.get(timeout=1) # decrements queue size by 1
-            print('Worker %s got task %s' % (name, task))
+            print('Arbeiter %s hat Task %s bekommen' % (name, task))
             gevent.sleep(0)
     except Empty:
-        print('Quitting time!')
+        print('Ende!')
 
 def boss():
     """
-    Boss will wait to hand out work until a individual worker is
-    free since the maxsize of the task queue is 3.
+    Der Boss wartet mit dem Austeilen der Arbeit, bis ein individueller
+    Arbeiter frei ist, da die Maximalgrösse der Task-Queue 3 ist.
     """
 
     for i in xrange(1,10):
         tasks.put(i)
-    print('Assigned all work in iteration 1')
+    print('Alle Arbeit in Iteration 1 ausgeteilt')
 
     for i in xrange(10,20):
         tasks.put(i)
-    print('Assigned all work in iteration 2')
+    print('Alle Arbeit in Iteration 2 ausgeteilt')
 
 gevent.joinall([
     gevent.spawn(boss),
@@ -914,35 +898,36 @@ gevent.joinall([
 
 <p></code>
 <pre><code class="python">
-Worker steve got task 1
-Worker john got task 2
-Worker bob got task 3
-Worker steve got task 4
-Worker john got task 5
-Worker bob got task 6
-Assigned all work in iteration 1
-Worker steve got task 7
-Worker john got task 8
-Worker bob got task 9
-Worker steve got task 10
-Worker john got task 11
-Worker bob got task 12
-Worker steve got task 13
-Worker john got task 14
-Worker bob got task 15
-Worker steve got task 16
-Worker john got task 17
-Worker bob got task 18
-Assigned all work in iteration 2
-Worker steve got task 19
-Quitting time!
-Quitting time!
-Quitting time!
+Arbeiter steve hat Task 1 bekommen
+Arbeiter john hat Task 2 bekommen
+Arbeiter bob hat Task 3 bekommen
+Arbeiter steve hat Task 4 bekommen
+Arbeiter john hat Task 5 bekommen
+Arbeiter bob hat Task 6 bekommen
+Alle Arbeit in Iteration 1 ausgeteilt
+Arbeiter steve hat Task 7 bekommen
+Arbeiter john hat Task 8 bekommen
+Arbeiter bob hat Task 9 bekommen
+Arbeiter steve hat Task 10 bekommen
+Arbeiter john hat Task 11 bekommen
+Arbeiter bob hat Task 12 bekommen
+Arbeiter steve hat Task 13 bekommen
+Arbeiter john hat Task 14 bekommen
+Arbeiter bob hat Task 15 bekommen
+Arbeiter steve hat Task 16 bekommen
+Arbeiter john hat Task 17 bekommen
+Arbeiter bob hat Task 18 bekommen
+Alle Arbeit in Iteration 2 ausgeteilt
+Arbeiter steve hat Task 19 bekommen
+Ende!
+Ende!
+Ende!
 </pre></code></p>
-<h2 id="groups-and-pools">Groups and Pools</h2>
-<p>A group is a collection of running greenlets which are managed
-and scheduled together as group. It also doubles as parallel
-dispatcher that mirrors the Python <code>multiprocessing</code> library.</p>
+<h2 id="groups-und-pools">Groups und Pools</h2>
+<p>Eine Group ist eine Sammlung laufender Greenlets, die zusammen
+als Gruppe verwaltet und geleitet werden. Es dient ausserdem
+als paralleler Dispatcher, der die Python <code>multiprocessing</code>-Bibliothek
+spiegelt.</p>
 <pre><code class="python">
 import gevent
 from gevent.pool import Group
@@ -976,10 +961,10 @@ fizz
 fizz
 fizz
 </pre></code></p>
-<p>This is very useful for managing groups of asynchronous tasks.</p>
-<p>As mentioned above, <code>Group</code> also provides an API for dispatching
-jobs to grouped greenlets and collecting their results in various
-ways.</p>
+<p>Das ist sehr nützlich, um Gruppen asynchroner Aufgaben zu verwalten.</p>
+<p>Wie oben erwähnt, hat <code>Group</code> auch eine API, um Jobs an gruppierte
+Greenlets auszuliefern und deren Resultate wieder einzusammeln; all
+dies auf mehreren verschiedenen Wegen.</p>
 <pre><code class="python">
 import gevent
 from gevent import getcurrent
@@ -988,22 +973,23 @@ from gevent.pool import Group
 group = Group()
 
 def hello_from(n):
-    print('Size of group %s' % len(group))
-    print('Hello from Greenlet %s' % id(getcurrent()))
+    print('Ausmass der Gruppe: %s' % len(group))
+    print('Hallo von Greenlet %s' % id(getcurrent()))
 
 group.map(hello_from, xrange(3))
+
 
 def intensive(n):
     gevent.sleep(3 - n)
     return 'task', n
 
-print('Ordered')
+print('Geordnet')
 
 ogroup = Group()
 for i in ogroup.imap(intensive, xrange(3)):
     print(i)
 
-print('Unordered')
+print('Ungeordnet')
 
 igroup = Group()
 for i in igroup.imap_unordered(intensive, xrange(3)):
@@ -1013,25 +999,26 @@ for i in igroup.imap_unordered(intensive, xrange(3)):
 
 <p></code>
 <pre><code class="python">
-Size of group 3
-Hello from Greenlet 4319667536
-Size of group 3
-Hello from Greenlet 4319669616
-Size of group 3
-Hello from Greenlet 4319668336
-Ordered
+Ausmass der Gruppe: 3
+Hallo von Greenlet 4482750416
+Ausmass der Gruppe: 3
+Hallo von Greenlet 4482750736
+Ausmass der Gruppe: 3
+Hallo von Greenlet 4483567696
+Geordnet
 ('task', 0)
 ('task', 1)
 ('task', 2)
-Unordered
+Ungeordnet
 ('task', 2)
 ('task', 1)
 ('task', 0)
 </pre></code></p>
-<p>A pool is a structure designed for handling dynamic numbers of
-greenlets which need to be concurrency-limited.  This is often
-desirable in cases where one wants to do many network or IO bound
-tasks in parallel.</p>
+<p>Ein Pool ist eine Struktur, die dafür entwickelt wurde, eine
+dynamische Anzahl von Greenlets, die in ihrer Nebenläufigkeit 
+limitiert werden müssen, zu handhaben. Dies ist oftmals gewünscht,
+wenn viele Netzwerk- oder IO-basierte Aufgaben parallel bearbeitet
+werden sollen.</p>
 <pre><code class="python">
 import gevent
 from gevent.pool import Pool
@@ -1039,20 +1026,20 @@ from gevent.pool import Pool
 pool = Pool(2)
 
 def hello_from(n):
-    print('Size of pool %s' % len(pool))
+    print('Ausmass des Pools %s' % len(pool))
 
 pool.map(hello_from, xrange(3))
 </pre>
 
 <p></code>
 <pre><code class="python">
-Size of pool 2
-Size of pool 2
-Size of pool 1
+Ausmass des Pools 2
+Ausmass des Pools 2
+Ausmass des Pools 1
 </pre></code></p>
-<p>Often when building gevent driven services one will center the
-entire service around a pool structure. An example might be a
-class which polls on various sockets.</p>
+<p>Oftmals wird beim Bau eines gevent-basierten Services der gesamte
+Service um eine Pool-Struktur herum gebaut. Ein Beispiel könnte
+eine Klasse sein, die auf verschiedenen Sockets arbeitet.</p>
 <pre>
 <code class="python">from gevent.pool import Pool
 
@@ -1068,7 +1055,7 @@ class SocketPool(object):
 
     def add_handler(self, socket):
         if self.pool.full():
-            raise Exception("At maximum pool size")
+            raise Exception("Pool hat Maximum erreicht")
         else:
             self.pool.spawn(self.listen, socket)
 
@@ -1078,7 +1065,7 @@ class SocketPool(object):
 </code>
 </pre>
 
-<h2 id="locks-and-semaphores">Locks and Semaphores</h2>
+<h2 id="locks-und-semaphoren">Locks und Semaphoren</h2>
 <p>A semaphore is a low level synchronization primitive that allows
 greenlets to coordinate and limit concurrent access or execution. A
 semaphore exposes two methods, <code>acquire</code> and <code>release</code> The
@@ -1202,6 +1189,7 @@ def application(environ, start_response):
     return [body]
 
 WSGIServer(('', 8000), application).serve_forever()
+
 
 <code>
 </pre>
@@ -1573,6 +1561,7 @@ def ajax_endpoint(environ, start_response):
             yield json.dumps(datum) + '\n'
         except Empty:
             pass
+
 
 gevent.spawn(producer)
 
