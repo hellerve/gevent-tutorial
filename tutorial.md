@@ -1,17 +1,19 @@
 [TOC]
 
-# Introduction
+# Einführung
 
-The structure of this tutorial assumes an intermediate level
-knowledge of Python but not much else. No knowledge of
-concurrency is expected. The goal is to give you
-the tools you need to get going with gevent, help you tame
-your existing concurrency problems and start writing asynchronous
-applications today.
+Die Struktur dieses Tutorials nimmt an, dass der Leser ein
+gewisses Level an Wissen über Python-Programmierung hat,
+sonst jedoch nicht viel. Kein Wissen über Nebenläufigkeit
+wird erwartet. Das Ziel ist es, dem Leser die Werkzeuge in
+die Hand zu geben, um mit gevent zu arbeiten, ihm zu helfen,
+seine vorhandenen Probleme mit Nebenläufigkeit zu bezwingen
+und es ihm ermöglichen, noch heute asynchrone Applikationen 
+zu schreiben.
 
-### Contributors
+### Mitwirkende
 
-In chronological order of contribution:
+In chronologischer Reihenfolge der Mitarbeit:
 [Stephen Diehl](http://www.stephendiehl.com)
 [J&eacute;r&eacute;my Bethmont](https://github.com/jerem)
 [sww](https://github.com/sww)
@@ -24,42 +26,48 @@ In chronological order of contribution:
 [Alexis Metaireau](http://notmyidea.org)
 [Daniel Velkov](https://github.com/djv)
 
-Also thanks to Denis Bilenko for writing gevent and guidance in
-constructing this tutorial.
+Ausserdem ein Dankeschön an Denis Bilenko dafür, dass er gevent
+geschrieben und uns bei der Erstellung dieses Tutorials beraten hat.
 
-This is a collaborative document published under MIT license.
-Have something to add? See a typo? Fork and issue a
-pull request [Github](https://github.com/sdiehl/gevent-tutorial).
-Any and all contributions are welcome.
+Dies ist ein kollaboratives Dokument, veröffentlicht unter der MIT-Lizenz.
+Du hast etwas hinzuzufügen? Siehst einen Tippfehler? Forke es und erstelle
+einen Pull Request auf [Github](https://github.com/sdiehl/gevent-tutorial).
+Jede Mitarbeit ist willkommen.
 
-This page is also [available in Japanese](http://methane.github.com/gevent-tutorial-ja) and [Italian](http://pbertera.github.io/gevent-tutorial-it/).
+(Anmerkung des Übersetzers: Falls Tippfehler in der Übersetzung auftauchen
+solleten, kannst du sie [hier](https://github.com/hellerve/gevent-tutorial)
+melden.)
+
+Diese Seite ist auch [in Japanisch](http://methane.github.com/gevent-tutorial-ja) 
+und [Italienisch](http://pbertera.github.io/gevent-tutorial-it/) verfügbar.
 
 # Core
 
 ## Greenlets
 
-The primary pattern used in gevent is the <strong>Greenlet</strong>, a
-lightweight coroutine provided to Python as a C extension module.
-Greenlets all run inside of the OS process for the main
-program but are scheduled cooperatively.
+Die primäre Struktur, die in gevent verwendet wird, ist das <strong>Greenlet</strong>, 
+eine leichtgewichtige Koroutine die Python als C-Erweiterungs-Modul zur
+Verfügung gestellt wird. Greenlets laufen allesamt innerhalb des OS-Prozesses
+des Hauptprogrammes, werden aber kooperativ verwaltet.
 
-> Only one greenlet is ever running at any given time.
+> Only one greenlet is ever running at any given time. (Nur ein Greenlet läuft zu jeder gegebenen Zeit.)
 
-This differs from any of the real parallelism constructs provided by
-``multiprocessing`` or ``threading`` libraries which do spin processes
-and POSIX threads which are scheduled by the operating system and
-are truly parallel.
+Dies unterscheidet sich von allen echten Parallelitäts-Konstrukten,
+die von den ``multiprocessing``- oder ```threading``-Bibliotheken
+implementiert werden; diese verwenden Spin-Prozesse und POSIX-Threads,
+welche vom Betriebssystem verwaltet werden und echt parallel ablaufen.
 
-## Synchronous & Asynchronous Execution
+## Synchrone & Asynchrone Ausführung
 
-The core idea of concurrency is that a larger task can be broken down
-into a collection of subtasks which are scheduled to run simultaneously
-or *asynchronously*, instead of one at a time or *synchronously*. A
-switch between the two subtasks is known as a *context switch*.
+Die Kernidee von Nebenläufigkeit ist, dass eine grössere Aufgabe in
+eine Ansammlung von Sub-Aufgaben unterteilt werden kann, welche
+simultan ausgeführt werden sollen oder *asynchron* anstatt nacheinander
+oder *synchron*. Ein Übergang zwischen zwei Sub-Aufgaben nennt man
+*Kontext-Wechsel*(Context Switch).
 
-A context switch in gevent is done through *yielding*. In this 
-example we have two contexts which yield to each other through invoking
-``gevent.sleep(0)``.
+Ein Kontext-Wechsel in gevent wird durch *Yielding* umgesetzt. In diesem
+Beispiel haben wir zwei Kontexte, die sich gegenseitig "yielden", indem
+sie ``gevent.sleep(0)```aufrufen.
 
 [[[cog
 import gevent
@@ -81,20 +89,22 @@ gevent.joinall([
 ]]]
 [[[end]]]
 
-It is illuminating to visualize the control flow of the program or walk
-through it with a debugger to see the context switches as they occur.
+Es ist erhellend, den Kontrollfluss des Programms zu visualisieren
+oder mit einem Debugger hindurchzugeben, um die Kontext-Wechsel in Echtzeit
+zu betrachten.
 
 ![Greenlet Control Flow](flow.gif)
 
-The real power of gevent comes when we use it for network and IO
-bound functions which can be cooperatively scheduled. Gevent has
-taken care of all the details to ensure that your network
-libraries will implicitly yield their greenlet contexts whenever
-possible. I cannot stress enough what a powerful idiom this is.
-But maybe an example will illustrate.
+Die wirkliche Stärke von gevent ist zu sehen, wenn wir es für
+Netzwerk- und IO-lastige Funktionen benutzen, welche kooperativ
+verwaltet werden können. Gevent kümmert sich um all die Details,
+die nötig sind, damit deine Netzwerkbibliotheken immer implizit ihre
+Greenlet-Kontexte liefern, wenn dies möglich ist. Ich kann nicht
+genug betonen, was für ein mächtiges Idiom das ist. Aber vielleicht
+illustriert ein Beispiel das.
 
-In this case the ``select()`` function is normally a blocking
-call that polls on various file descriptors.
+In diesem Fall ist die ``select()``-Funktion normalerweise ein
+blockierender Aufruf, der verscheidene Dateideskriptoren abfragt.
 
 [[[cog
 import time
@@ -128,12 +138,12 @@ gevent.joinall([
 ]]]
 [[[end]]]
 
-Another somewhat synthetic example defines a ``task`` function
-which is *non-deterministic*
-(i.e. its output is not guaranteed to give the same result for
-the same inputs). In this case the side effect of running the
-function is that the task pauses its execution for a random
-number of seconds.
+Ein weiteres etwas synthetisches Beispiel definiert eine 
+``task``-Funktion, die *nichtdeterministisch* ist(d.h. es wird nicht
+garantiert, dass ihre Rückgabe immer das selbe Ergebnis bei gleicher
+Eingabe ist). In diesem Fall ist der Nebeneffekt dieser Funktion,
+dass die Ausführung der Aufgabe für eine zufällige Anzahl an Sekunden
+pausiert wird.
 
 [[[cog
 import gevent
