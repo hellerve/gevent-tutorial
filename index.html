@@ -116,7 +116,8 @@ zu schreiben.</p>
 <a href="https://github.com/youngsterxyf">youngsterxyf</a>
 <a href="https://github.com/ehebert">Eddie Hebert</a>
 <a href="http://notmyidea.org">Alexis Metaireau</a>
-<a href="https://github.com/djv">Daniel Velkov</a></p>
+<a href="https://github.com/djv">Daniel Velkov</a>
+<a href="https://veitheller.de">Veit Heller</a></p>
 <p>Ausserdem ein Dankeschön an Denis Bilenko dafür, dass er gevent
 geschrieben und uns bei der Erstellung dieses Tutorials beraten hat.</p>
 <p>Dies ist ein kollaboratives Dokument, veröffentlicht unter der MIT-Lizenz.
@@ -276,15 +277,15 @@ Aufgabe 7 beendet
 Aufgabe 8 beendet
 Aufgabe 9 beendet
 Asynchron:
-Aufgabe 5 beendet
-Aufgabe 0 beendet
 Aufgabe 1 beendet
-Aufgabe 6 beendet
-Aufgabe 8 beendet
 Aufgabe 2 beendet
 Aufgabe 3 beendet
-Aufgabe 4 beendet
+Aufgabe 5 beendet
 Aufgabe 7 beendet
+Aufgabe 0 beendet
+Aufgabe 4 beendet
+Aufgabe 8 beendet
+Aufgabe 6 beendet
 Aufgabe 9 beendet
 </pre></code></p>
 <p>In der synchronen Funktion laufen alle Aufrufe von <code>task()</code>
@@ -346,25 +347,25 @@ asynchronous()
 <p></code>
 <pre><code class="python">
 Synchron:
-Prozess 1: Tue, 17 Feb 2015 15:02:26 +0000
-Prozess 2: Tue, 17 Feb 2015 15:02:26 +0000
-Prozess 3: Tue, 17 Feb 2015 15:02:26 +0000
-Prozess 4: Tue, 17 Feb 2015 15:02:26 +0000
-Prozess 5: Tue, 17 Feb 2015 15:02:26 +0000
-Prozess 6: Tue, 17 Feb 2015 15:02:27 +0000
-Prozess 7: Tue, 17 Feb 2015 15:02:27 +0000
-Prozess 8: Tue, 17 Feb 2015 15:02:27 +0000
-Prozess 9: Tue, 17 Feb 2015 15:02:27 +0000
+Prozess 1: Tue, 17 Feb 2015 15:12:06 +0000
+Prozess 2: Tue, 17 Feb 2015 15:12:06 +0000
+Prozess 3: Tue, 17 Feb 2015 15:12:06 +0000
+Prozess 4: Tue, 17 Feb 2015 15:12:07 +0000
+Prozess 5: Tue, 17 Feb 2015 15:12:07 +0000
+Prozess 6: Tue, 17 Feb 2015 15:12:07 +0000
+Prozess 7: Tue, 17 Feb 2015 15:12:07 +0000
+Prozess 8: Tue, 17 Feb 2015 15:12:07 +0000
+Prozess 9: Tue, 17 Feb 2015 15:12:07 +0000
 Asynchron:
-Prozess 3: Tue, 17 Feb 2015 15:02:27 +0000
-Prozess 2: Tue, 17 Feb 2015 15:02:27 +0000
-Prozess 7: Tue, 17 Feb 2015 15:02:27 +0000
-Prozess 4: Tue, 17 Feb 2015 15:02:27 +0000
-Prozess 5: Tue, 17 Feb 2015 15:02:27 +0000
-Prozess 9: Tue, 17 Feb 2015 15:02:27 +0000
-Prozess 6: Tue, 17 Feb 2015 15:02:27 +0000
-Prozess 8: Tue, 17 Feb 2015 15:02:27 +0000
-Prozess 1: Tue, 17 Feb 2015 15:02:27 +0000
+Prozess 8: Tue, 17 Feb 2015 15:12:08 +0000
+Prozess 4: Tue, 17 Feb 2015 15:12:08 +0000
+Prozess 1: Tue, 17 Feb 2015 15:12:08 +0000
+Prozess 2: Tue, 17 Feb 2015 15:12:08 +0000
+Prozess 7: Tue, 17 Feb 2015 15:12:08 +0000
+Prozess 5: Tue, 17 Feb 2015 15:12:08 +0000
+Prozess 3: Tue, 17 Feb 2015 15:12:08 +0000
+Prozess 6: Tue, 17 Feb 2015 15:12:08 +0000
+Prozess 9: Tue, 17 Feb 2015 15:12:08 +0000
 </pre></code></p>
 <h2 id="determinismus">Determinismus</h2>
 <p>Wie bereits erwähnt sind Greenlets deterministisch. Gibt man ihnen
@@ -1013,11 +1014,11 @@ for i in igroup.imap_unordered(intensive, xrange(3)):
 <p></code>
 <pre><code class="python">
 Size of group 3
-Hello from Greenlet 4413683184
+Hello from Greenlet 4319667536
 Size of group 3
-Hello from Greenlet 4413685104
+Hello from Greenlet 4319669616
 Size of group 3
-Hello from Greenlet 4413683824
+Hello from Greenlet 4319668336
 Ordered
 ('task', 0)
 ('task', 1)
