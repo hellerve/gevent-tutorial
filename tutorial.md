@@ -1475,14 +1475,13 @@ Die dazugehörige HTML-Seite sieht wie folgt aus::
 
 ## Chat-Server
 
-The final motivating example, a realtime chat room. This example
-requires <a href="http://flask.pocoo.org/">Flask</a> ( but not necessarily so, you could use Django,
-Pyramid, etc ). The corresponding Javascript and HTML files can
-be found <a href="https://github.com/sdiehl/minichat">here</a>.
-
+Das letzte Beispiel sei ein Echtzeit-Chat-Raum. Dieses Beispiel benötigt
+<a href="http://flask.pocoo.org/">Flask</a> ( aber nicht notwendigerweise, verwendbar wären auch Django,
+Pyramid, usw.). Die entsprechenden Javascript und HTML-Dateien sind <a href="https://github.com/sdiehl/minichat">hier</a>
+zu finden.
 
 <pre>
-<code class="python"># Micro gevent chatroom.
+<code class="python"># Mikro-gevent-Chatraum.
 # ----------------------
 
 from flask import Flask, render_template, request

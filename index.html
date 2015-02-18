@@ -277,16 +277,16 @@ Aufgabe 7 beendet
 Aufgabe 8 beendet
 Aufgabe 9 beendet
 Asynchron:
-Aufgabe 0 beendet
 Aufgabe 2 beendet
-Aufgabe 5 beendet
-Aufgabe 6 beendet
-Aufgabe 7 beendet
-Aufgabe 8 beendet
-Aufgabe 9 beendet
-Aufgabe 1 beendet
 Aufgabe 3 beendet
 Aufgabe 4 beendet
+Aufgabe 7 beendet
+Aufgabe 9 beendet
+Aufgabe 0 beendet
+Aufgabe 1 beendet
+Aufgabe 5 beendet
+Aufgabe 6 beendet
+Aufgabe 8 beendet
 </pre></code></p>
 <p>In der synchronen Funktion laufen alle Aufrufe von <code>task()</code>
 sequentiell ab, was ein <em>blockierendes</em> (d.h. die Ausführung
@@ -1000,11 +1000,11 @@ for i in igroup.imap_unordered(intensive, xrange(3)):
 <p></code>
 <pre><code class="python">
 Ausmass der Gruppe: 3
-Hallo von Greenlet 4453738608
+Hallo von Greenlet 4351809488
 Ausmass der Gruppe: 3
-Hallo von Greenlet 4453738448
+Hallo von Greenlet 4351809808
 Ausmass der Gruppe: 3
-Hallo von Greenlet 4454551632
+Hallo von Greenlet 4352626768
 Geordnet
 ('task', 0)
 ('task', 1)
@@ -1650,12 +1650,12 @@ server.serve_forever()
 &lt;/html&gt;
 </code></pre>
 <h2 id="chat-server">Chat-Server</h2>
-<p>The final motivating example, a realtime chat room. This example
-requires <a href="http://flask.pocoo.org/">Flask</a> ( but not necessarily so, you could use Django,
-Pyramid, etc ). The corresponding Javascript and HTML files can
-be found <a href="https://github.com/sdiehl/minichat">here</a>.</p>
+<p>Das letzte Beispiel sei ein Echtzeit-Chat-Raum. Dieses Beispiel benötigt
+<a href="http://flask.pocoo.org/">Flask</a> ( aber nicht notwendigerweise, verwendbar wären auch Django,
+Pyramid, usw.). Die entsprechenden Javascript und HTML-Dateien sind <a href="https://github.com/sdiehl/minichat">hier</a>
+zu finden.</p>
 <pre>
-<code class="python"># Micro gevent chatroom.
+<code class="python"># Mikro-gevent-Chatraum.
 # ----------------------
 
 from flask import Flask, render_template, request
