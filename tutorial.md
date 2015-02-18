@@ -1182,30 +1182,36 @@ gevent.joinall([ping, pong])
 </code>
 </pre>
 
-# Real World Applications
+# Anwendungen aus der echten Welt
 
 ## Gevent ZeroMQ
 
-[ZeroMQ](http://www.zeromq.org/) is described by its authors as
-"a socket library that acts as a concurrency framework". It is a
-very powerful messaging layer for building concurrent and
-distributed applications.
+[ZeroMQ](http://www.zeromq.org/) wird von dessen Autoren als
+"eine Socket-Bibliothek, die als ein Nebenläufigkeitsframework
+agiert" beschrieben. Es stellt eine sehr mächtige Messaging-Schicht
+bereit, die es erlaubt, nebenläufige und verteilte Anwendungen zu
+erstellen.
 
-ZeroMQ provides a variety of socket primitives, the simplest of
-which being a Request-Response socket pair. A socket has two
-methods of interest ``send`` and ``recv``, both of which are
-normally blocking operations. But this is remedied by a briliant
-library by [Travis Cline](https://github.com/traviscline) which
-uses gevent.socket to poll ZeroMQ sockets in a non-blocking
-manner.  You can install gevent-zeromq from PyPi via:  ``pip install
-gevent-zeromq``
+ZeroMQ bietet eine Vielfalt an Socket-Primitiven an, die simpelste
+davon ist ein Request-Response-Socket-Paar. Ein Socket hat
+zwei interessante Methoden namens ``send`` and ``recv``, beide
+davon normale blockierende Operationen. Dies jedoch wird durch
+eine geniale Bibliothek von [Travis Cline](https://github.com/traviscline) 
+in Ordnung gebracht, welche gevent.socket benutzt, um ZeroMQ-Sockets
+auf nicht-blockierende Weise abzufragen. Um dies auszunutzen,
+muss lediglich die Python-Anbindung an ZeroMQ via ``pip install pyzmq``
+installiert werden.
+
+(Anmerkung des Übersetzers: Diese Bibliothek wurde inzwischen
+in den Kern des PyZeroMQ-Projekts eingebettet. Installationshinweise
+für gevent-zeromq sind daher hinfällig)
 
 [[[cog
-# Note: Remember to ``pip install pyzmq``
+# Anmerkung: Zuvor muss ``pip install pyzmq`` ausgeführt werden
 import gevent
 import zmq.green as zmq
 
-# Global Context
+# Globaler Kontext
 context = zmq.Context()
 
 def server():
@@ -1213,9 +1219,9 @@ def server():
     server_socket.bind("tcp://127.0.0.1:5000")
 
     for request in range(1,10):
-        server_socket.send("Hello")
-        print('Switched to Server for %s' % request)
-        # Implicit context switch occurs here
+        server_socket.send("Hallo")
+        print('Zum Server gewechselt, um %s zu bearbeiten' % request)
+        # IHier passiert ein impliziter Kontextwechsel
         server_socket.recv()
 
 def client():
@@ -1225,9 +1231,9 @@ def client():
     for request in range(1,10):
 
         client_socket.recv()
-        print('Switched to Client for %s' % request)
+        print('Zum Client gewechselt, um %s zu bearbeiten' % request)
         # Implicit context switch occurs here
-        client_socket.send("World")
+        client_socket.send("Welt")
 
 publisher = gevent.spawn(server)
 client    = gevent.spawn(client)
@@ -1237,17 +1243,17 @@ gevent.joinall([publisher, client])
 ]]]
 [[[end]]]
 
-## Simple Servers
+## Simple Server
 
 <pre>
 <code class="python">
-# On Unix: Access with ``$ nc 127.0.0.1 5000``
-# On Window: Access with ``$ telnet 127.0.0.1 5000``
+# Unter Unix: Zugang mit ``$ nc 127.0.0.1 5000``
+# Unter Window: Zugang mit ``$ telnet 127.0.0.1 5000``
 
 from gevent.server import StreamServer
 
 def handle(socket, address):
-    socket.send("Hello from a telnet!\n")
+    socket.send("Hallo von telnet!\n")
     for i in range(5):
         socket.send(str(i) + '\n')
     socket.close()
@@ -1257,26 +1263,26 @@ server.serve_forever()
 </code>
 </pre>
 
-## WSGI Servers
+## WSGI-Server
 
-Gevent provides two WSGI servers for serving content over HTTP.
-Henceforth called ``wsgi`` and ``pywsgi``:
+Gevent liefert zwei WSGI-Server mit, um Inhalte über HTTP anzubieten,
+fortan nennen wir sie ``wsgi`` und ``pywsgi``:
 
 * gevent.wsgi.WSGIServer
 * gevent.pywsgi.WSGIServer
 
-In earlier versions of gevent before 1.0.x, gevent used libevent
-instead of libev. Libevent included a fast HTTP server which was
-used by gevent's ``wsgi`` server.
+In früheren Versionen von gevent(vor 1.0.x) benutzte gevent libevent
+anstelle von libev. Libevent schloss einen HTTP-Server mit ein,
+welcher von gevents ``wsgi``-Server benutzt wurde.
 
-In gevent 1.0.x there is no http server included. Instead
-``gevent.wsgi`` is now an alias for the pure Python server in
-``gevent.pywsgi``.
+In gevent 1.0.x gibt es keinen HTTP-Server mehr. Stattdessen
+ist ``gevent.wsgi`` nun ein Alias für den reinen Python-Server
+in ``gevent.pywsgi``.
 
 
-## Streaming Servers
+## Streaming-Server
 
-**If you are using gevent 1.0.x, this section does not apply**
+**Diese Sektion ist unter gevent 1.0.x nicht anwendbar.**
 
 For those familiar with streaming HTTP services, the core idea is
 that in the headers we do not specify a length of the content. We
