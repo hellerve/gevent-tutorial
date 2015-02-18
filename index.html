@@ -83,11 +83,11 @@
 <li><a href="#actors">Actors</a></li>
 </ul>
 </li>
-<li><a href="#real-world-applications">Real World Applications</a><ul>
+<li><a href="#anwendungen-aus-der-echten-welt">Anwendungen aus der echten Welt</a><ul>
 <li><a href="#gevent-zeromq">Gevent ZeroMQ</a></li>
-<li><a href="#simple-servers">Simple Servers</a></li>
-<li><a href="#wsgi-servers">WSGI Servers</a></li>
-<li><a href="#streaming-servers">Streaming Servers</a></li>
+<li><a href="#simple-server">Simple Server</a></li>
+<li><a href="#wsgi-server">WSGI-Server</a></li>
+<li><a href="#streaming-server">Streaming-Server</a></li>
 <li><a href="#long-polling">Long Polling</a></li>
 <li><a href="#websockets">Websockets</a></li>
 <li><a href="#chat-server">Chat Server</a></li>
@@ -277,16 +277,16 @@ Aufgabe 7 beendet
 Aufgabe 8 beendet
 Aufgabe 9 beendet
 Asynchron:
-Aufgabe 6 beendet
-Aufgabe 7 beendet
-Aufgabe 9 beendet
-Aufgabe 1 beendet
 Aufgabe 2 beendet
-Aufgabe 4 beendet
-Aufgabe 5 beendet
+Aufgabe 7 beendet
 Aufgabe 8 beendet
-Aufgabe 0 beendet
 Aufgabe 3 beendet
+Aufgabe 4 beendet
+Aufgabe 6 beendet
+Aufgabe 0 beendet
+Aufgabe 1 beendet
+Aufgabe 5 beendet
+Aufgabe 9 beendet
 </pre></code></p>
 <p>In der synchronen Funktion laufen alle Aufrufe von <code>task()</code>
 sequentiell ab, was ein <em>blockierendes</em> (d.h. die Ausführung
@@ -1000,11 +1000,11 @@ for i in igroup.imap_unordered(intensive, xrange(3)):
 <p></code>
 <pre><code class="python">
 Ausmass der Gruppe: 3
-Hallo von Greenlet 4369639536
+Hallo von Greenlet 4477437904
 Ausmass der Gruppe: 3
-Hallo von Greenlet 4369639376
+Hallo von Greenlet 4477438224
 Ausmass der Gruppe: 3
-Hallo von Greenlet 4370456656
+Hallo von Greenlet 4478255184
 Geordnet
 ('task', 0)
 ('task', 1)
@@ -1361,26 +1361,31 @@ gevent.joinall([ping, pong])
 </code>
 </pre>
 
-<h1 id="real-world-applications">Real World Applications</h1>
+<h1 id="anwendungen-aus-der-echten-welt">Anwendungen aus der echten Welt</h1>
 <h2 id="gevent-zeromq">Gevent ZeroMQ</h2>
-<p><a href="http://www.zeromq.org/">ZeroMQ</a> is described by its authors as
-"a socket library that acts as a concurrency framework". It is a
-very powerful messaging layer for building concurrent and
-distributed applications.</p>
-<p>ZeroMQ provides a variety of socket primitives, the simplest of
-which being a Request-Response socket pair. A socket has two
-methods of interest <code>send</code> and <code>recv</code>, both of which are
-normally blocking operations. But this is remedied by a briliant
-library by <a href="https://github.com/traviscline">Travis Cline</a> which
-uses gevent.socket to poll ZeroMQ sockets in a non-blocking
-manner.  You can install gevent-zeromq from PyPi via:  <code>pip install
-gevent-zeromq</code></p>
+<p><a href="http://www.zeromq.org/">ZeroMQ</a> wird von dessen Autoren als
+"eine Socket-Bibliothek, die als ein Nebenläufigkeitsframework
+agiert" beschrieben. Es stellt eine sehr mächtige Messaging-Schicht
+bereit, die es erlaubt, nebenläufige und verteilte Anwendungen zu
+erstellen.</p>
+<p>ZeroMQ bietet eine Vielfalt an Socket-Primitiven an, die simpelste
+davon ist ein Request-Response-Socket-Paar. Ein Socket hat
+zwei interessante Methoden namens <code>send</code> and <code>recv</code>, beide
+davon normale blockierende Operationen. Dies jedoch wird durch
+eine geniale Bibliothek von <a href="https://github.com/traviscline">Travis Cline</a> 
+in Ordnung gebracht, welche gevent.socket benutzt, um ZeroMQ-Sockets
+auf nicht-blockierende Weise abzufragen. Um dies auszunutzen,
+muss lediglich die Python-Anbindung an ZeroMQ via <code>pip install pyzmq</code>
+installiert werden.</p>
+<p>(Anmerkung des Übersetzers: Diese Bibliothek wurde inzwischen
+in den Kern des PyZeroMQ-Projekts eingebettet. Installationshinweise
+für gevent-zeromq sind daher hinfällig)</p>
 <pre><code class="python">
-# Note: Remember to ``pip install pyzmq``
+# Anmerkung: Zuvor muss ``pip install pyzmq`` ausgeführt werden
 import gevent
 import zmq.green as zmq
 
-# Global Context
+# Globaler Kontext
 context = zmq.Context()
 
 def server():
@@ -1388,9 +1393,9 @@ def server():
     server_socket.bind("tcp://127.0.0.1:5000")
 
     for request in range(1,10):
-        server_socket.send("Hello")
-        print('Switched to Server for %s' % request)
-        # Implicit context switch occurs here
+        server_socket.send("Hallo")
+        print('Zum Server gewechselt, um %s zu bearbeiten' % request)
+        # IHier passiert ein impliziter Kontextwechsel
         server_socket.recv()
 
 def client():
@@ -1400,9 +1405,9 @@ def client():
     for request in range(1,10):
 
         client_socket.recv()
-        print('Switched to Client for %s' % request)
+        print('Zum Client gewechselt, um %s zu bearbeiten' % request)
         # Implicit context switch occurs here
-        client_socket.send("World")
+        client_socket.send("Welt")
 
 publisher = gevent.spawn(server)
 client    = gevent.spawn(client)
@@ -1413,35 +1418,35 @@ gevent.joinall([publisher, client])
 
 <p></code>
 <pre><code class="python">
-Switched to Server for 1
-Switched to Client for 1
-Switched to Server for 2
-Switched to Client for 2
-Switched to Server for 3
-Switched to Client for 3
-Switched to Server for 4
-Switched to Client for 4
-Switched to Server for 5
-Switched to Client for 5
-Switched to Server for 6
-Switched to Client for 6
-Switched to Server for 7
-Switched to Client for 7
-Switched to Server for 8
-Switched to Client for 8
-Switched to Server for 9
-Switched to Client for 9
+Zum Server gewechselt, um 1 zu bearbeiten
+Zum Client gewechselt, um 1 zu bearbeiten
+Zum Server gewechselt, um 2 zu bearbeiten
+Zum Client gewechselt, um 2 zu bearbeiten
+Zum Server gewechselt, um 3 zu bearbeiten
+Zum Client gewechselt, um 3 zu bearbeiten
+Zum Server gewechselt, um 4 zu bearbeiten
+Zum Client gewechselt, um 4 zu bearbeiten
+Zum Server gewechselt, um 5 zu bearbeiten
+Zum Client gewechselt, um 5 zu bearbeiten
+Zum Server gewechselt, um 6 zu bearbeiten
+Zum Client gewechselt, um 6 zu bearbeiten
+Zum Server gewechselt, um 7 zu bearbeiten
+Zum Client gewechselt, um 7 zu bearbeiten
+Zum Server gewechselt, um 8 zu bearbeiten
+Zum Client gewechselt, um 8 zu bearbeiten
+Zum Server gewechselt, um 9 zu bearbeiten
+Zum Client gewechselt, um 9 zu bearbeiten
 </pre></code></p>
-<h2 id="simple-servers">Simple Servers</h2>
+<h2 id="simple-server">Simple Server</h2>
 <pre>
 <code class="python">
-# On Unix: Access with ``$ nc 127.0.0.1 5000``
-# On Window: Access with ``$ telnet 127.0.0.1 5000``
+# Unter Unix: Zugang mit ``$ nc 127.0.0.1 5000``
+# Unter Window: Zugang mit ``$ telnet 127.0.0.1 5000``
 
 from gevent.server import StreamServer
 
 def handle(socket, address):
-    socket.send("Hello from a telnet!\n")
+    socket.send("Hallo von telnet!\n")
     for i in range(5):
         socket.send(str(i) + '\n')
     socket.close()
@@ -1451,21 +1456,21 @@ server.serve_forever()
 </code>
 </pre>
 
-<h2 id="wsgi-servers">WSGI Servers</h2>
-<p>Gevent provides two WSGI servers for serving content over HTTP.
-Henceforth called <code>wsgi</code> and <code>pywsgi</code>:</p>
+<h2 id="wsgi-server">WSGI-Server</h2>
+<p>Gevent liefert zwei WSGI-Server mit, um Inhalte über HTTP anzubieten,
+fortan nennen wir sie <code>wsgi</code> und <code>pywsgi</code>:</p>
 <ul>
 <li>gevent.wsgi.WSGIServer</li>
 <li>gevent.pywsgi.WSGIServer</li>
 </ul>
-<p>In earlier versions of gevent before 1.0.x, gevent used libevent
-instead of libev. Libevent included a fast HTTP server which was
-used by gevent's <code>wsgi</code> server.</p>
-<p>In gevent 1.0.x there is no http server included. Instead
-<code>gevent.wsgi</code> is now an alias for the pure Python server in
-<code>gevent.pywsgi</code>.</p>
-<h2 id="streaming-servers">Streaming Servers</h2>
-<p><strong>If you are using gevent 1.0.x, this section does not apply</strong></p>
+<p>In früheren Versionen von gevent(vor 1.0.x) benutzte gevent libevent
+anstelle von libev. Libevent schloss einen HTTP-Server mit ein,
+welcher von gevents <code>wsgi</code>-Server benutzt wurde.</p>
+<p>In gevent 1.0.x gibt es keinen HTTP-Server mehr. Stattdessen
+ist <code>gevent.wsgi</code> nun ein Alias für den reinen Python-Server
+in <code>gevent.pywsgi</code>.</p>
+<h2 id="streaming-server">Streaming-Server</h2>
+<p><strong>Diese Sektion ist unter gevent 1.0.x nicht anwendbar.</strong></p>
 <p>For those familiar with streaming HTTP services, the core idea is
 that in the headers we do not specify a length of the content. We
 instead hold the connection open and flush chunks down the pipe,
