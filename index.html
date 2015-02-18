@@ -277,16 +277,16 @@ Aufgabe 7 beendet
 Aufgabe 8 beendet
 Aufgabe 9 beendet
 Asynchron:
+Aufgabe 6 beendet
+Aufgabe 7 beendet
+Aufgabe 9 beendet
 Aufgabe 1 beendet
 Aufgabe 2 beendet
-Aufgabe 3 beendet
-Aufgabe 7 beendet
 Aufgabe 4 beendet
 Aufgabe 5 beendet
-Aufgabe 0 beendet
-Aufgabe 6 beendet
 Aufgabe 8 beendet
-Aufgabe 9 beendet
+Aufgabe 0 beendet
+Aufgabe 3 beendet
 </pre></code></p>
 <p>In der synchronen Funktion laufen alle Aufrufe von <code>task()</code>
 sequentiell ab, was ein <em>blockierendes</em> (d.h. die Ausführung
@@ -1000,11 +1000,11 @@ for i in igroup.imap_unordered(intensive, xrange(3)):
 <p></code>
 <pre><code class="python">
 Ausmass der Gruppe: 3
-Hallo von Greenlet 4482750416
+Hallo von Greenlet 4369639536
 Ausmass der Gruppe: 3
-Hallo von Greenlet 4482750736
+Hallo von Greenlet 4369639376
 Ausmass der Gruppe: 3
-Hallo von Greenlet 4483567696
+Hallo von Greenlet 4370456656
 Geordnet
 ('task', 0)
 ('task', 1)
@@ -1066,13 +1066,13 @@ class SocketPool(object):
 </pre>
 
 <h2 id="locks-und-semaphoren">Locks und Semaphoren</h2>
-<p>A semaphore is a low level synchronization primitive that allows
-greenlets to coordinate and limit concurrent access or execution. A
-semaphore exposes two methods, <code>acquire</code> and <code>release</code> The
-difference between the number of times a semaphore has been
-acquired and released is called the bound of the semaphore. If a
-semaphore bound reaches 0 it will block until another greenlet
-releases its acquisition.</p>
+<p>Eine Semaphore ist eine Low-Level Synchronisations-Primitive, die
+es Greenlets ermöglicht, gleichzeitige Zugriffe und Ausführung
+zu koordinieren und zu limitieren. Eine Semaphore hat zwei Methoden,
+<code>acquire</code> und <code>release</code>. Die Maximalanzahl an gleichzeitigen
+acquires nennt sich die Grenze der Semaphore. Falls die Grenze
+der Semaphore 0 erreicht(alle freien Plätze besetzt sind), blockiert
+sie bis ein Greenlet seinen Platz wieder freigibt.</p>
 <pre><code class="python">
 from gevent import sleep
 from gevent.pool import Pool
@@ -1082,16 +1082,16 @@ sem = BoundedSemaphore(2)
 
 def worker1(n):
     sem.acquire()
-    print('Worker %i acquired semaphore' % n)
+    print('Arbeiter %i akquiriert Semaphore' % n)
     sleep(0)
     sem.release()
-    print('Worker %i released semaphore' % n)
+    print('Arbeiter %i git Semaphore frei' % n)
 
 def worker2(n):
     with sem:
-        print('Worker %i acquired semaphore' % n)
+        print('Arbeiter %i akquiriert Semaphore' % n)
         sleep(0)
-    print('Worker %i released semaphore' % n)
+    print('Arbeiter %i gibt Semaphore frei' % n)
 
 pool = Pool()
 pool.map(worker1, xrange(0,2))
@@ -1100,26 +1100,27 @@ pool.map(worker2, xrange(3,6))
 
 <p></code>
 <pre><code class="python">
-Worker 0 acquired semaphore
-Worker 1 acquired semaphore
-Worker 0 released semaphore
-Worker 1 released semaphore
-Worker 3 acquired semaphore
-Worker 4 acquired semaphore
-Worker 3 released semaphore
-Worker 4 released semaphore
-Worker 5 acquired semaphore
-Worker 5 released semaphore
+Arbeiter 0 akquiriert Semaphore
+Arbeiter 1 akquiriert Semaphore
+Arbeiter 0 git Semaphore frei
+Arbeiter 1 git Semaphore frei
+Arbeiter 3 akquiriert Semaphore
+Arbeiter 4 akquiriert Semaphore
+Arbeiter 3 gibt Semaphore frei
+Arbeiter 4 gibt Semaphore frei
+Arbeiter 5 akquiriert Semaphore
+Arbeiter 5 gibt Semaphore frei
 </pre></code></p>
-<p>A semaphore with bound of 1 is known as a Lock. it provides
-exclusive execution to one greenlet. They are often used to
-ensure that resources are only in use at one time in the context
-of a program.</p>
+<p>Eine Semaphore mit Grenze 1 wird Lock genannt. Dieses lässt
+die exklusive Ausführung eines einzelnen Greenlets zu. Sie
+werden oft benutzt, um sicherzustellen, dass Resourcen nur
+von einer Stelle im Kontext des Programms gleichzeitig 
+benutzt werden.</p>
 <h2 id="thread-locals">Thread Locals</h2>
-<p>Gevent also allows you to specify data which is local to the
-greenlet context. Internally, this is implemented as a global
-lookup which addresses a private namespace keyed by the
-greenlet's <code>getcurrent()</code> value.</p>
+<p>Gevent erlaubt es auch, den Greenlets Daten zur Verfügung zu stellen,
+die lokal für dessen Kontext verfügbar ist. Intern ist dies durch ein
+globales Nachlagen eines privaten Namespaces implementiert, wobei
+der Wert von <code>getcurrent()</code> des Greenlets der Schlüssel ist.</p>
 <pre><code class="python">
 import gevent
 from gevent.local import local
@@ -1137,7 +1138,7 @@ def f2():
     try:
         stash.x
     except AttributeError:
-        print("x is not local to f2")
+        print("x ist nicht lokal in f2")
 
 g1 = gevent.spawn(f1)
 g2 = gevent.spawn(f2)
@@ -1149,12 +1150,13 @@ gevent.joinall([g1, g2])
 <pre><code class="python">
 1
 2
-x is not local to f2
+x ist nicht lokal in f2
 </pre></code></p>
-<p>Many web frameworks that use gevent store HTTP session
-objects inside gevent thread locals. For example, using the
-Werkzeug utility library and its proxy object we can create
-Flask-style request objects.</p>
+<p>Viele Web-Frameworks, die gevent benutzen, speichern
+HTTP-Session-Objekte in gevent Thread Locals. Zum Beispiel
+können wir unter Benutzung der Werkzeug-Bibliothek und
+dessen Proxy-Objekt Request-Objekte im Stile des Flask-Frameworks
+nachbauen.</p>
 <pre>
 <code class="python">from gevent.local import local
 from werkzeug.local import LocalProxy
@@ -1173,7 +1175,7 @@ def sessionmanager(environ):
     _requests.request = None
 
 def logic():
-    return "Hello " + request.remote_addr
+    return "Hallo " + request.remote_addr
 
 def application(environ, start_response):
     status = '200 OK'
@@ -1194,13 +1196,13 @@ WSGIServer(('', 8000), application).serve_forever()
 <code>
 </pre>
 
-<p>Flask's system is a bit more sophisticated than this example, but the
-idea of using thread locals as local session storage is nonetheless the
-same.</p>
+<p>Flasks System ist ein bisschen ausgeklügelter als dieses Beispiel, aber
+die Idee, Thread Locals als lokalen Session-Speicher zu verwenden ist
+trotzdem der gleiche.</p>
 <h2 id="subprocess">Subprocess</h2>
-<p>As of gevent 1.0, <code>gevent.subprocess</code> -- a patched version of Python's
-<code>subprocess</code> module -- has been added. It supports cooperative waiting on
-subprocesses.</p>
+<p>Seit gevent 1.0 ist <code>gevent.subprocess</code> - eine gepatchte Version von
+Pythons <code>subprocess</code>-Modul - in gevent verfügbar. Es unterstützt kooperatives
+Warten auf Subprozesse.</p>
 <pre>
 <code class="python">
 import gevent
@@ -1229,13 +1231,14 @@ Linux
 <code>
 </pre>
 
-<p>Many people also want to use <code>gevent</code> and <code>multiprocessing</code> together. One of
-the most obvious challenges is that inter-process communication provided by
-<code>multiprocessing</code> is not cooperative by default. Since
-<code>multiprocessing.Connection</code>-based objects (such as <code>Pipe</code>) expose their
-underlying file descriptors, <code>gevent.socket.wait_read</code> and <code>wait_write</code> can
-be used to cooperatively wait for ready-to-read/ready-to-write events before
-actually reading/writing:</p>
+<p>Einige Benutzer wollen <code>gevent</code> und <code>multiprocessing</code> zusammen verwenden.
+Eine der offensichtlichen Herausforderungen hierbei ist, dass 
+Interprozesskommunikation in <code>multiprocessing</code> nicht standardmässig 
+kooperativ ist. Da  <code>multiprozessing.Connection</code>-basierte Objekte (wie <code>Pipe</code>)
+ihre ihnen zugrundeliegenen Dateideskriptoren offenlegen, können
+<code>gevent.socket.wait_read</code> und <code>wait_write</code> benutzt werden, um kooperativ
+auf ready-to-read/ready-to-write-Events zu warten, bevor tatsächlich 
+gelesen/geschrieben wird:</p>
 <pre>
 <code class="python">
 import gevent
@@ -1273,8 +1276,9 @@ if __name__ == '__main__':
 </code>
 </pre>
 
-<p>Note, however, that the combination of <code>multiprocessing</code> and gevent brings
-along certain OS-dependent pitfalls, among others:</p>
+<p>Man sollte sich jedoch klarmachen, dass die Kombination von <code>multiprocessing</code>
+und gevent einige betriebssystemspezifische Fallstricke mit sich bringt,
+unter anderem:</p>
 <ul>
 <li>After <a href="http://linux.die.net/man/2/fork">forking</a> on POSIX-compliant systems
 gevent's state in the child is ill-posed. One side effect is that greenlets
