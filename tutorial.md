@@ -889,13 +889,13 @@ class SocketPool(object):
 
 ## Locks und Semaphoren
 
-A semaphore is a low level synchronization primitive that allows
-greenlets to coordinate and limit concurrent access or execution. A
-semaphore exposes two methods, ``acquire`` and ``release`` The
-difference between the number of times a semaphore has been
-acquired and released is called the bound of the semaphore. If a
-semaphore bound reaches 0 it will block until another greenlet
-releases its acquisition.
+Eine Semaphore ist eine Low-Level Synchronisations-Primitive, die
+es Greenlets ermöglicht, gleichzeitige Zugriffe und Ausführung
+zu koordinieren und zu limitieren. Eine Semaphore hat zwei Methoden,
+``acquire`` und ``release``. Die Maximalanzahl an gleichzeitigen
+acquires nennt sich die Grenze der Semaphore. Falls die Grenze
+der Semaphore 0 erreicht(alle freien Plätze besetzt sind), blockiert
+sie bis ein Greenlet seinen Platz wieder freigibt.
 
 [[[cog
 from gevent import sleep
@@ -906,16 +906,16 @@ sem = BoundedSemaphore(2)
 
 def worker1(n):
     sem.acquire()
-    print('Worker %i acquired semaphore' % n)
+    print('Arbeiter %i akquiriert Semaphore' % n)
     sleep(0)
     sem.release()
-    print('Worker %i released semaphore' % n)
+    print('Arbeiter %i git Semaphore frei' % n)
 
 def worker2(n):
     with sem:
-        print('Worker %i acquired semaphore' % n)
+        print('Arbeiter %i akquiriert Semaphore' % n)
         sleep(0)
-    print('Worker %i released semaphore' % n)
+    print('Arbeiter %i gibt Semaphore frei' % n)
 
 pool = Pool()
 pool.map(worker1, xrange(0,2))
@@ -923,17 +923,18 @@ pool.map(worker2, xrange(3,6))
 ]]]
 [[[end]]]
 
-A semaphore with bound of 1 is known as a Lock. it provides
-exclusive execution to one greenlet. They are often used to
-ensure that resources are only in use at one time in the context
-of a program.
+Eine Semaphore mit Grenze 1 wird Lock genannt. Dieses lässt
+die exklusive Ausführung eines einzelnen Greenlets zu. Sie
+werden oft benutzt, um sicherzustellen, dass Resourcen nur
+von einer Stelle im Kontext des Programms gleichzeitig 
+benutzt werden.
 
 ## Thread Locals
 
-Gevent also allows you to specify data which is local to the
-greenlet context. Internally, this is implemented as a global
-lookup which addresses a private namespace keyed by the
-greenlet's ``getcurrent()`` value.
+Gevent erlaubt es auch, den Greenlets Daten zur Verfügung zu stellen,
+die lokal für dessen Kontext verfügbar ist. Intern ist dies durch ein
+globales Nachlagen eines privaten Namespaces implementiert, wobei
+der Wert von ``getcurrent()`` des Greenlets der Schlüssel ist.
 
 [[[cog
 import gevent
@@ -952,7 +953,7 @@ def f2():
     try:
         stash.x
     except AttributeError:
-        print("x is not local to f2")
+        print("x ist nicht lokal in f2")
 
 g1 = gevent.spawn(f1)
 g2 = gevent.spawn(f2)
@@ -961,10 +962,11 @@ gevent.joinall([g1, g2])
 ]]]
 [[[end]]]
 
-Many web frameworks that use gevent store HTTP session
-objects inside gevent thread locals. For example, using the
-Werkzeug utility library and its proxy object we can create
-Flask-style request objects.
+Viele Web-Frameworks, die gevent benutzen, speichern
+HTTP-Session-Objekte in gevent Thread Locals. Zum Beispiel
+können wir unter Benutzung der Werkzeug-Bibliothek und
+dessen Proxy-Objekt Request-Objekte im Stile des Flask-Frameworks
+nachbauen.
 
 <pre>
 <code class="python">from gevent.local import local
@@ -984,7 +986,7 @@ def sessionmanager(environ):
     _requests.request = None
 
 def logic():
-    return "Hello " + request.remote_addr
+    return "Hallo " + request.remote_addr
 
 def application(environ, start_response):
     status = '200 OK'
@@ -1005,15 +1007,15 @@ WSGIServer(('', 8000), application).serve_forever()
 <code>
 </pre>
 
-Flask's system is a bit more sophisticated than this example, but the
-idea of using thread locals as local session storage is nonetheless the
-same.
+Flasks System ist ein bisschen ausgeklügelter als dieses Beispiel, aber
+die Idee, Thread Locals als lokalen Session-Speicher zu verwenden ist
+trotzdem der gleiche.
 
 ## Subprocess
 
-As of gevent 1.0, ``gevent.subprocess`` -- a patched version of Python's
-``subprocess`` module -- has been added. It supports cooperative waiting on
-subprocesses.
+Seit gevent 1.0 ist ``gevent.subprocess`` - eine gepatchte Version von
+Pythons ``subprocess``-Modul - in gevent verfügbar. Es unterstützt kooperatives
+Warten auf Subprozesse.
 
 <pre>
 <code class="python">
@@ -1043,13 +1045,14 @@ Linux
 <code>
 </pre>
 
-Many people also want to use ``gevent`` and ``multiprocessing`` together. One of
-the most obvious challenges is that inter-process communication provided by
-``multiprocessing`` is not cooperative by default. Since
-``multiprocessing.Connection``-based objects (such as ``Pipe``) expose their
-underlying file descriptors, ``gevent.socket.wait_read`` and ``wait_write`` can
-be used to cooperatively wait for ready-to-read/ready-to-write events before
-actually reading/writing:
+Einige Benutzer wollen ``gevent`` und ``multiprocessing`` zusammen verwenden.
+Eine der offensichtlichen Herausforderungen hierbei ist, dass 
+Interprozesskommunikation in ``multiprocessing`` nicht standardmässig 
+kooperativ ist. Da  ``multiprozessing.Connection``-basierte Objekte (wie ``Pipe``)
+ihre ihnen zugrundeliegenen Dateideskriptoren offenlegen, können
+``gevent.socket.wait_read`` und ``wait_write`` benutzt werden, um kooperativ
+auf ready-to-read/ready-to-write-Events zu warten, bevor tatsächlich 
+gelesen/geschrieben wird:
 
 <pre>
 <code class="python">
@@ -1088,8 +1091,9 @@ if __name__ == '__main__':
 </code>
 </pre>
 
-Note, however, that the combination of ``multiprocessing`` and gevent brings
-along certain OS-dependent pitfalls, among others:
+Man sollte sich jedoch klarmachen, dass die Kombination von ``multiprocessing``
+und gevent einige betriebssystemspezifische Fallstricke mit sich bringt,
+unter anderem:
 
 * After [forking](http://linux.die.net/man/2/fork) on POSIX-compliant systems
 gevent's state in the child is ill-posed. One side effect is that greenlets
