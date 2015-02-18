@@ -686,7 +686,7 @@ Operationen unterstützt, aber auf eine solche Weise implementiert
 sind, dass sie sicher zwischen Greenlets manipuliert werden können.
 
 Zum Beispiel wird bei simultanem Zugriff zweier Greenlets auf
-ein Item der Queue nciht zweimal das selbe Item herausgenommen.
+ein Item der Queue nicht zweimal das selbe Item herausgenommen.
 
 [[[cog
 import gevent
@@ -1095,35 +1095,38 @@ Man sollte sich jedoch klarmachen, dass die Kombination von ``multiprocessing``
 und gevent einige betriebssystemspezifische Fallstricke mit sich bringt,
 unter anderem:
 
-* After [forking](http://linux.die.net/man/2/fork) on POSIX-compliant systems
-gevent's state in the child is ill-posed. One side effect is that greenlets
-spawned before ``multiprocessing.Process`` creation run in both, parent and
-child process.
-* ``a.send()`` in ``put_msg()`` above might still block the calling thread
-non-cooperatively: a ready-to-write event only ensures that one byte can be
-written. The underlying buffer might be full before the attempted write is
-complete.
-* The ``wait_write()`` / ``wait_read()``-based approach as indicated above does
-not work on Windows (``IOError: 3 is not a socket (files are not supported)``),
-because Windows cannot watch pipes for events.
 
-The Python package [gipc](http://pypi.python.org/pypi/gipc) overcomes these
-challenges for you in a largely transparent fashion on both, POSIX-compliant and
-Windows systems. It provides gevent-aware ``multiprocessing.Process``-based
-child processes and gevent-cooperative inter-process communication based on
-pipes.
+* Nach dem [Forken](http://linux.die.net/man/2/fork) ist gevents Zustand im Child
+schlecht gestellt. Ein Nebeneffekt ist, dass Greenlets, die vor dem Erstellen
+von ``multiprocessing.Process`` hervorgebracht werden in beiden Prozessen
+laufen, Parent und Child.
+* ``a.send()`` in ``put_msg`` oben könnte den aufrufenden Thread immer noch
+nicht kooperativ blockieren: ein ready-to-write-Event versichert nur, dass
+ein Byte geschrieben werden kann. Der zugrundeliegende Puffer könnte voll sein,
+bevor der versuchte Write beendet wurde.
+* Der Ansatz, der auf ``wait_write()``/``wait_read()`` basiert, so wie es oben
+verwendet wurde, funktioniert nicht auf Windows(``IOError: 3 is not a 
+socket (files are not supported)``), da Windows Pipes nicht auf Events hin 
+beobachten kann.
+
+Das Python-Paket [gipc](http://pypi.python.org/pypi/gipc) überwindet diese
+Herausforderungen für den Anwender auf eine grössenteils transparente Weise,
+sowohl auf POSIX- als auch auf Windows-Systemen. Es liefert gevent-kompatible
+``multiprocessing.Process``-basierte Kindprozesse und gevent-kooperative
+Interprozesskommunikation basierend auf Pipes.
 
 ## Actors
 
-The actor model is a higher level concurrency model popularized
-by the language Erlang. In short the main idea is that you have a
-collection of independent Actors which have an inbox from which
-they receive messages from other Actors. The main loop inside the
-Actor iterates through its messages and takes action according to
-its desired behavior.
+Das Aktoren-Modell ist ein High-Level-Nebenläufigkeitsmodell, das
+von der Sprache Erlang popularisiert wurde. Kurz gesagt ist die Hauptidee,
+dass man über eine Ansammlung unabhängiger Actors verfügt, die eine
+Inbox besitzen, aus welcher sie Nachrichten von anderen Actors bekommen.
+Die Hauptschleife im Actor iteriert durch seine Nachrichten und agiert
+auf Basis seines gewünschten Verhaltens.
 
-Gevent does not have a primitive Actor type, but we can define
-one very simply using a Queue inside of a subclassed Greenlet.
+Gevent hat keinen primitiven Actor-Typen, jedoch können wir sehr
+einfach einen definieren, indem wir eine Queue innerhalb einer
+Greenlet-Subklasse verwenden.
 
 <pre>
 <code class="python">import gevent
@@ -1138,7 +1141,7 @@ class Actor(gevent.Greenlet):
 
     def receive(self, message):
         """
-        Define in your subclass.
+        Dies muss in jeder Subklasse anders definiert werden.
         """
         raise NotImplemented()
 
@@ -1152,7 +1155,7 @@ class Actor(gevent.Greenlet):
 </code>
 </pre>
 
-In a use case:
+Ein Anwendungsfall:
 
 <pre>
 <code class="python">import gevent
@@ -1243,7 +1246,7 @@ gevent.joinall([publisher, client])
 ]]]
 [[[end]]]
 
-## Simple Server
+## Ein simpler Server
 
 <pre>
 <code class="python">
@@ -1284,34 +1287,36 @@ in ``gevent.pywsgi``.
 
 **Diese Sektion ist unter gevent 1.0.x nicht anwendbar.**
 
-For those familiar with streaming HTTP services, the core idea is
-that in the headers we do not specify a length of the content. We
-instead hold the connection open and flush chunks down the pipe,
-prefixing each with a hex digit indicating the length of the
-chunk. The stream is closed when a size zero chunk is sent.
+Für diejenigen Benutzer, die HTTP-Streaming-Services kennen: die
+Kernidee ist, dass wir im Header nicht die Länge des Inhalts
+spezifizieren. Anstelle dessen halten wir die Verbindung offen
+und schicken Teile durch die Pipe, während wir jedem Teil
+eine hexadezimalen Zahl voranstellen, die die Länge des Teils
+repräsentiert. Der Stream wird geschlossen, sobald ein Teil
+von der Grösse 0 gesendet wird.
 
     HTTP/1.1 200 OK
     Content-Type: text/plain
     Transfer-Encoding: chunked
 
     8
-    <p>Hello
+    <p>Hallo
 
     9
-    World</p>
+    Welt!</p>
 
     0
 
-The above HTTP connection could not be created in wsgi
-because streaming is not supported. It would instead have to
-buffered.
+Die obige HTTP-Verbindung kann nicht in wsgi kreiert werden,
+da Streaming nicht unterstützt wird. Anstelle dessen würde es
+gepuffert.
 
 <pre>
 <code class="python">from gevent.wsgi import WSGIServer
 
 def application(environ, start_response):
     status = '200 OK'
-    body = '&lt;p&gt;Hello World&lt;/p&gt;'
+    body = '&lt;p&gt;Hallo Welt!&lt;/p&gt;'
 
     headers = [
         ('Content-Type', 'text/html')
@@ -1325,8 +1330,8 @@ WSGIServer(('', 8000), application).serve_forever()
 </code>
 </pre>
 
-Using pywsgi we can however write our handler as a generator and
-yield the result chunk by chunk.
+Unter Verwendung von pywsgi können wir jedoch unseren Handler
+als Generator schreiben und das Ergebnis Teil für Teil versenden.
 
 <pre>
 <code class="python">from gevent.pywsgi import WSGIServer
@@ -1339,28 +1344,30 @@ def application(environ, start_response):
     ]
 
     start_response(status, headers)
-    yield "&lt;p&gt;Hello"
-    yield "World&lt;/p&gt;"
+    yield "&lt;p&gt;Hallo"
+    yield "Welt!&lt;/p&gt;"
 
 WSGIServer(('', 8000), application).serve_forever()
 
 </code>
 </pre>
 
-But regardless, performance on Gevent servers is phenomenal
-compared to other Python servers. libev is a very vetted technology
-and its derivative servers are known to perform well at scale.
+Trotzdem ist die Performance von Gevent-Servern phänomenal
+im Vergleich zu anderen Python-Servern. Libev ist eine sehr
+gut untersuchte Technologie und Server, die sie benutzen,
+sind bekannt dafür, dass sie gut skalieren.
 
-To benchmark, try Apache Benchmark ``ab`` or see this
-[Benchmark of Python WSGI Servers](http://nichol.as/benchmark-of-python-web-servers)
-for comparison with other servers.
+Als Massstab kann der geneigte Leser zum Beispiel das
+Apache Benchmark ``ab`` verwenden oder diesen
+[Vergleich von Python-WSGI-Servern](http://nichol.as/benchmark-of-python-web-servers)
+für einen Vergleich mit anderen Servern konsultieren.
 
 <pre>
 <code class="shell">$ ab -n 10000 -c 100 http://127.0.0.1:8000/
 </code>
 </pre>
 
-## Long Polling
+## Langes Polling
 
 <pre>
 <code class="python">import gevent
@@ -1372,7 +1379,7 @@ data_source = Queue()
 
 def producer():
     while True:
-        data_source.put_nowait('Hello World')
+        data_source.put_nowait('Hallo Welt')
         gevent.sleep(1)
 
 def ajax_endpoint(environ, start_response):
@@ -1400,11 +1407,12 @@ WSGIServer(('', 8000), ajax_endpoint).serve_forever()
 
 ## Websockets
 
-Websocket example which requires <a href="https://bitbucket.org/Jeffrey/gevent-websocket/src">gevent-websocket</a>.
-
+Dies ist ein Beispiel für Websockets, welches
+<a href="https://bitbucket.org/Jeffrey/gevent-websocket/src">gevent-websocket</a>
+benötigt.
 
 <pre>
-<code class="python"># Simple gevent-websocket server
+<code class="python"># Simpler gevent-websocket server
 import json
 import random
 
@@ -1412,7 +1420,7 @@ from gevent import pywsgi, sleep
 from geventwebsocket.handler import WebSocketHandler
 
 class WebSocketApp(object):
-    '''Send random data to the websocket'''
+    '''Sendet Zufallsdaten an den Websocket'''
 
     def __call__(self, environ, start_response):
         ws = environ['wsgi.websocket']
@@ -1429,43 +1437,43 @@ server.serve_forever()
 </code>
 </pre>
 
-HTML Page:
+Die dazugehörige HTML-Seite sieht wie folgt aus::
 
     <html>
         <head>
-            <title>Minimal websocket application</title>
+            <title>Minimale Websocket-Anwendung</title>
             <script type="text/javascript" src="jquery.min.js"></script>
             <script type="text/javascript">
             $(function() {
-                // Open up a connection to our server
+                // Öffnet eine Verbindung zu unserem Server
                 var ws = new WebSocket("ws://localhost:10000/");
 
-                // What do we do when we get a message?
+                // Was tun wir, wenn wir eine Nachricht erhalten?
                 ws.onmessage = function(evt) {
                     $("#placeholder").append('<p>' + evt.data + '</p>')
                 }
-                // Just update our conn_status field with the connection status
+                // Wir aktualisieren unser conn_status-Feld mit dem Verbindungs-Status
                 ws.onopen = function(evt) {
-                    $('#conn_status').html('<b>Connected</b>');
+                    $('#conn_status').html('<b>Verbunden</b>');
                 }
                 ws.onerror = function(evt) {
-                    $('#conn_status').html('<b>Error</b>');
+                    $('#conn_status').html('<b>Fehler</b>');
                 }
                 ws.onclose = function(evt) {
-                    $('#conn_status').html('<b>Closed</b>');
+                    $('#conn_status').html('<b>Geschlossen</b>');
                 }
             });
         </script>
         </head>
         <body>
-            <h1>WebSocket Example</h1>
-            <div id="conn_status">Not Connected</div>
+            <h1>WebSocket-Beispiel</h1>
+            <div id="conn_status">Nicht verbunden</div>
             <div id="placeholder" style="width:600px;height:300px;"></div>
         </body>
     </html>
 
 
-## Chat Server
+## Chat-Server
 
 The final motivating example, a realtime chat room. This example
 requires <a href="http://flask.pocoo.org/">Flask</a> ( but not necessarily so, you could use Django,
