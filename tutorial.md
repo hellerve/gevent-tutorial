@@ -4,12 +4,12 @@
 
 Die Struktur dieses Tutorials nimmt an, dass der Leser ein
 gewisses Level an Wissen über Python-Programmierung hat,
-sonst jedoch nicht viel. Kein Wissen über Nebenläufigkeit
-wird erwartet. Das Ziel ist es, dem Leser die Werkzeuge in
-die Hand zu geben, um mit gevent zu arbeiten, ihm zu helfen,
-seine vorhandenen Probleme mit Nebenläufigkeit zu bezwingen
-und es ihm ermöglichen, noch heute asynchrone Applikationen 
-zu schreiben.
+sonst jedoch nicht viel. Es wird nicht erwartet, dass er
+etwas über Nebenläufigkeit weiss. Das Ziel ist es, dem Leser 
+die Werkzeuge in die Hand zu geben, um mit gevent zu arbeiten, 
+ihm zu helfen, seine vorhandenen Probleme mit Nebenläufigkeit 
+zu bezwingen und es ihm ermöglichen, noch heute asynchrone 
+Applikationen zu schreiben.
 
 ### Mitwirkende
 
@@ -47,7 +47,7 @@ und [Italienisch](http://pbertera.github.io/gevent-tutorial-it/) verfügbar.
 ## Greenlets
 
 Die primäre Struktur, die in gevent verwendet wird, ist das <strong>Greenlet</strong>, 
-eine leichtgewichtige Koroutine die Python als C-Erweiterungs-Modul zur
+eine leichtgewichtige Koroutine, die Python als C-Erweiterungs-Modul zur
 Verfügung gestellt wird. Greenlets laufen allesamt innerhalb des OS-Prozesses
 des Hauptprogrammes, werden aber kooperativ verwaltet.
 
